@@ -1,24 +1,23 @@
 "use client";
 
 import { useState, useRef } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Particles from "./components/Particles";
 
 export default function Home() {
   const [stage, setStage] = useState("gate");
   const [showText, setShowText] = useState(true);
-  const videoRef = useRef(null);
+  const gateVideoRef = useRef(null);
   const router = useRouter();
 
   const startOpening = () => {
     setShowText(false);
-    if (videoRef.current) {
-      videoRef.current.play();
+    if (gateVideoRef.current) {
+      gateVideoRef.current.play();
     }
   };
 
-  const handleVideoEnd = () => {
+  const handleGateEnd = () => {
     setStage("walkway");
   };
 
@@ -35,11 +34,11 @@ export default function Home() {
           className="absolute inset-0 cursor-pointer"
         >
           <video
-            ref={videoRef}
+            ref={gateVideoRef}
             src="/videos/gate-opening.mp4"
             muted
             playsInline
-            onEnded={handleVideoEnd}
+            onEnded={handleGateEnd}
             className="absolute inset-0 w-full h-full object-cover"
           />
 
@@ -61,31 +60,33 @@ export default function Home() {
         </div>
       )}
 
-      {/* WALKWAY / FORK STAGE */}
+      {/* WALKWAY / FORK STAGE (video, looping) */}
       {stage === "walkway" && (
         <div className="absolute inset-0 animate-fadeIn overflow-hidden">
-          <div className="absolute inset-0 animate-kenburns">
-            <Image
-              src="/images/path-fork.jpg"
-              alt="The path divides"
-              fill
-              priority
-              className="object-cover"
-            />
-          </div>
+          <video
+            src="/videos/walkway-fork.mp4"
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover"
+          />
 
-          <Particles count={20} />
+          <Particles count={16} />
 
-          <div className="absolute inset-0 bg-black/10 flex items-end justify-between px-6 pb-16 z-30">
+          {/* Soft vignette so buttons stay readable */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/10 z-20" />
+
+          <div className="absolute inset-0 z-30 flex items-end justify-between px-6 pb-16">
             <button
               onClick={() => choosePath("pets")}
-              className="bg-white/90 hover:bg-white text-gray-900 px-5 py-3 rounded-full text-sm font-medium shadow-lg transition"
+              className="group relative px-6 py-3 rounded-full font-serif text-sm tracking-wide text-amber-50 backdrop-blur-md bg-white/10 border border-amber-200/50 shadow-[0_0_20px_rgba(255,223,150,0.25)] hover:bg-white/20 hover:border-amber-200/80 hover:shadow-[0_0_28px_rgba(255,223,150,0.4)] transition-all duration-300"
             >
               For Pets
             </button>
             <button
               onClick={() => choosePath("loved-ones")}
-              className="bg-white/90 hover:bg-white text-gray-900 px-5 py-3 rounded-full text-sm font-medium shadow-lg transition"
+              className="group relative px-6 py-3 rounded-full font-serif text-sm tracking-wide text-amber-50 backdrop-blur-md bg-white/10 border border-amber-200/50 shadow-[0_0_20px_rgba(255,223,150,0.25)] hover:bg-white/20 hover:border-amber-200/80 hover:shadow-[0_0_28px_rgba(255,223,150,0.4)] transition-all duration-300"
             >
               For Loved Ones
             </button>
