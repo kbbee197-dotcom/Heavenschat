@@ -24,3 +24,32 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@keyframes floatUp {
+  0% { transform: translateY(0) translateX(0); opacity: 0; }
+  10% { opacity: 0.9; }
+  50% { transform: translateY(-50vh) translateX(15px); }
+  90% { opacity: 0.4; }
+  100% { transform: translateY(-100vh) translateX(-10px); opacity: 0; }
+}
+.animate-floatUp {
+  animation-name: floatUp;
+  animation-timing-function: ease-in;
+  animation-iteration-count: infinite;
+}
+
+@keyframes kenburns {
+  0% { transform: scale(1) translate(0, 0); }
+  100% { transform: scale(1.15) translate(-1%, -1%); }
+}
+.animate-kenburns {
+  animation: kenburns 18s ease-in-out infinite alternate;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.animate-fadeIn {
+  animation: fadeIn 0.8s ease-in-out;
+}
