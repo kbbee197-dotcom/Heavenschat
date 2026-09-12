@@ -29,31 +29,27 @@ export default function Home() {
     return () => v.removeEventListener("playing", forceFrameThenPause);
   }, []);
 
+  const audioRef = useRef(null);
+
   const startOpening = () => {
     setShowText(false);
     userStartedRef.current = true;
     if (gateVideoRef.current) {
       gateVideoRef.current.currentTime = 0;
-      gateVideoRef.current.muted = false;
-      gateVideoRef.current.volume = 1;
       gateVideoRef.current.play();
     }
-    [walkwayVideoRef, petsVideoRef, lovedOnesVideoRef].forEach((ref) => {
-      if (ref.current) {
-        ref.current.muted = false;
-        ref.current.volume = 1;
-      }
-    });
+    if (audioRef.current) {
+      audioRef.current.volume = 0.5;
+      audioRef.current.play();
+    }
   };
 
   const toggleSound = () => {
     const newState = !soundOn;
     setSoundOn(newState);
-    [gateVideoRef, walkwayVideoRef, petsVideoRef, lovedOnesVideoRef].forEach((ref) => {
-      if (ref.current) {
-        ref.current.muted = !newState;
-      }
-    });
+    if (audioRef.current) {
+      audioRef.current.muted = !newState;
+    }
   };
 
   const handleGateEnd = () => setStage("walkway");
@@ -68,6 +64,7 @@ export default function Home() {
 
   return (
     <main className="relative h-screen w-screen overflow-hidden bg-black">
+      <audio ref={audioRef} src="/audio/ambient-music.m4a" loop />
       {stage !== "gate" && (
         <button
           onClick={toggleSound}
