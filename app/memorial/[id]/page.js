@@ -89,7 +89,9 @@ export default function MemorialPage() {
       .select()
       .single();
 
-    if (!error) {
+    if (error) {
+      alert("Tribute submit failed: " + error.message);
+    } else {
       setTributes([data, ...tributes]);
       setAuthorName("");
       setMessage("");
