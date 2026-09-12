@@ -92,6 +92,8 @@ export default function CreateMemorial() {
       if (uploadError) {
         console.error("Photo upload failed:", uploadError.message);
         setError("Photo upload failed: " + uploadError.message);
+        setLoading(false);
+        return;
       } else {
         const { data: urlData } = supabase.storage
           .from("memorial-photos")
