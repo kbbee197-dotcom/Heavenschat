@@ -7,6 +7,7 @@ import Particles from "./components/Particles";
 export default function Home() {
   const [stage, setStage] = useState("gate");
   const [showText, setShowText] = useState(true);
+  const [fading, setFading] = useState(false);
   const gateVideoRef = useRef(null);
   const router = useRouter();
 
@@ -18,11 +19,17 @@ export default function Home() {
   };
 
   const handleGateEnd = () => {
-    setStage("walkway");
+    setFading(true);
+    setTimeout(() => {
+      setStage("walkway");
+    }, 600);
   };
 
   const choosePath = (path) => {
-    router.push(path === "pets" ? "/memorial/pets" : "/memorial/loved-ones");
+    setFading(true);
+    setTimeout(() => {
+      router.push(path === "pets" ? "/memorial/pets" : "/memorial/loved-ones");
+    }, 500);
   };
 
   return (
@@ -31,7 +38,9 @@ export default function Home() {
       {stage === "gate" && (
         <div
           onClick={startOpening}
-          className="absolute inset-0 cursor-pointer"
+          className={`absolute inset-0 cursor-pointer transition-opacity duration-700 ${
+            fading ? "opacity-0" : "opacity-100"
+          }`}
         >
           <video
             ref={gateVideoRef}
@@ -62,7 +71,11 @@ export default function Home() {
 
       {/* WALKWAY / FORK STAGE (video, looping) */}
       {stage === "walkway" && (
-        <div className="absolute inset-0 animate-fadeIn overflow-hidden">
+        <div
+          className={`absolute inset-0 overflow-hidden transition-opacity duration-700 ${
+            fading ? "opacity-0" : "opacity-100 animate-fadeIn"
+          }`}
+        >
           <video
             src="/videos/walkway-fork.mp4"
             autoPlay
@@ -74,7 +87,6 @@ export default function Home() {
 
           <Particles count={16} />
 
-          {/* Soft vignette so buttons stay readable */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/10 z-20" />
 
           <div className="absolute inset-0 z-30 flex items-end justify-between px-6 pb-16">

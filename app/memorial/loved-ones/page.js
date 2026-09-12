@@ -2,7 +2,7 @@
 
 export default function LovedOnesMemorial() {
   return (
-    <main className="relative min-h-screen w-full overflow-hidden bg-black">
+    <main className="relative min-h-screen w-full overflow-hidden bg-black animate-fadeIn">
       <video
         src="/videos/loved-ones-memorial.mp4"
         autoPlay
