@@ -174,7 +174,7 @@ export default function CreateMemorial() {
               required
               value={form.full_name}
               onChange={(e) => updateField("full_name", e.target.value)}
-              className="w-full px-4 py-2 mb-3 rounded-lg bg-white/90 border border-amber-200/50 focus:outline-none focus:ring-2 focus:ring-amber-400"
+              className="w-full px-4 py-2 mb-3 rounded-lg bg-white/90 text-gray-900 border border-amber-200/50 focus:outline-none focus:ring-2 focus:ring-amber-400"
             />
 
             <label className="block text-sm text-amber-50/90 mb-1">
@@ -184,7 +184,7 @@ export default function CreateMemorial() {
               type="text"
               value={form.nicknames}
               onChange={(e) => updateField("nicknames", e.target.value)}
-              className="w-full px-4 py-2 mb-3 rounded-lg bg-white/90 border border-amber-200/50 focus:outline-none focus:ring-2 focus:ring-amber-400"
+              className="w-full px-4 py-2 mb-3 rounded-lg bg-white/90 text-gray-900 border border-amber-200/50 focus:outline-none focus:ring-2 focus:ring-amber-400"
             />
 
             <div className="flex gap-3 mb-3">
@@ -196,7 +196,7 @@ export default function CreateMemorial() {
                   type="date"
                   value={form.date_born}
                   onChange={(e) => updateField("date_born", e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-white/90 border border-amber-200/50 focus:outline-none focus:ring-2 focus:ring-amber-400 text-sm"
+                  className="w-full px-3 py-2 rounded-lg bg-white/90 text-gray-900 border border-amber-200/50 focus:outline-none focus:ring-2 focus:ring-amber-400 text-sm"
                 />
               </div>
               <div className="flex-1">
@@ -207,7 +207,7 @@ export default function CreateMemorial() {
                   type="date"
                   value={form.date_passed}
                   onChange={(e) => updateField("date_passed", e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-white/90 border border-amber-200/50 focus:outline-none focus:ring-2 focus:ring-amber-400 text-sm"
+                  className="w-full px-3 py-2 rounded-lg bg-white/90 text-gray-900 border border-amber-200/50 focus:outline-none focus:ring-2 focus:ring-amber-400 text-sm"
                 />
               </div>
             </div>
@@ -221,7 +221,7 @@ export default function CreateMemorial() {
                   type="text"
                   value={form.location_city}
                   onChange={(e) => updateField("location_city", e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-white/90 border border-amber-200/50 focus:outline-none focus:ring-2 focus:ring-amber-400 text-sm"
+                  className="w-full px-3 py-2 rounded-lg bg-white/90 text-gray-900 border border-amber-200/50 focus:outline-none focus:ring-2 focus:ring-amber-400 text-sm"
                 />
               </div>
               <div className="flex-1">
@@ -232,7 +232,7 @@ export default function CreateMemorial() {
                   type="text"
                   value={form.location_state}
                   onChange={(e) => updateField("location_state", e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-white/90 border border-amber-200/50 focus:outline-none focus:ring-2 focus:ring-amber-400 text-sm"
+                  className="w-full px-3 py-2 rounded-lg bg-white/90 text-gray-900 border border-amber-200/50 focus:outline-none focus:ring-2 focus:ring-amber-400 text-sm"
                 />
               </div>
             </div>
@@ -245,7 +245,7 @@ export default function CreateMemorial() {
               placeholder="e.g. spouse of Jane Doe, father of..."
               value={form.relation_notes}
               onChange={(e) => updateField("relation_notes", e.target.value)}
-              className="w-full px-4 py-2 mb-4 rounded-lg bg-white/90 border border-amber-200/50 focus:outline-none focus:ring-2 focus:ring-amber-400"
+              className="w-full px-4 py-2 mb-4 rounded-lg bg-white/90 text-gray-900 border border-amber-200/50 focus:outline-none focus:ring-2 focus:ring-amber-400"
             />
 
             <button
@@ -271,7 +271,7 @@ export default function CreateMemorial() {
               value={form.story}
               onChange={(e) => updateField("story", e.target.value)}
               placeholder="Tell their story..."
-              className="w-full px-4 py-3 mb-4 rounded-lg bg-white/90 border border-amber-200/50 focus:outline-none focus:ring-2 focus:ring-amber-400 resize-none"
+              className="w-full px-4 py-3 mb-4 rounded-lg bg-white/90 text-gray-900 border border-amber-200/50 focus:outline-none focus:ring-2 focus:ring-amber-400 resize-none"
             />
 
             <label className="flex items-center gap-2 mb-6 text-sm text-amber-50/90">
