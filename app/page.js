@@ -13,7 +13,6 @@ export default function Home() {
   const petsVideoRef = useRef(null);
   const lovedOnesVideoRef = useRef(null);
   const userStartedRef = useRef(false);
-  const [soundOn, setSoundOn] = useState(true);
 
   useEffect(() => {
     const v = gateVideoRef.current;
@@ -29,7 +28,6 @@ export default function Home() {
     return () => v.removeEventListener("playing", forceFrameThenPause);
   }, []);
 
-  const audioRef = useRef(null);
 
   const startOpening = () => {
     setShowText(false);
@@ -37,18 +35,6 @@ export default function Home() {
     if (gateVideoRef.current) {
       gateVideoRef.current.currentTime = 0;
       gateVideoRef.current.play();
-    }
-    if (audioRef.current) {
-      audioRef.current.volume = 0.5;
-      audioRef.current.play();
-    }
-  };
-
-  const toggleSound = () => {
-    const newState = !soundOn;
-    setSoundOn(newState);
-    if (audioRef.current) {
-      audioRef.current.muted = !newState;
     }
   };
 
@@ -64,15 +50,6 @@ export default function Home() {
 
   return (
     <main className="relative h-screen w-screen overflow-hidden bg-black">
-      <audio ref={audioRef} src="/audio/ambient-music.m4a" loop />
-      {stage !== "gate" && (
-        <button
-          onClick={toggleSound}
-          className="fixed top-4 right-4 z-50 w-10 h-10 rounded-full bg-black/40 backdrop-blur-md border border-white/20 flex items-center justify-center text-white text-lg"
-        >
-          {soundOn ? "\ud83d\udd0a" : "\ud83d\udd07"}
-        </button>
-      )}
       {/* GATE LAYER */}
       <div
         onClick={stage === "gate" ? startOpening : undefined}
