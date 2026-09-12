@@ -60,7 +60,6 @@ export default function Home() {
           onEnded={handleGateEnd}
           className="absolute inset-0 w-full h-full object-cover"
         />
-        <Particles count={14} />
         {stage === "gate" && showText && (
           <div className="absolute inset-0 z-30 pointer-events-none flex flex-col items-center justify-end pb-20 text-center px-6">
             <h1 className="text-white text-3xl font-serif mb-2 drop-shadow-lg">
