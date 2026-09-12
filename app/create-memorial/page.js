@@ -81,6 +81,7 @@ export default function CreateMemorial() {
       return;
     }
 
+    alert("photoFile check: " + (photoFile ? photoFile.name : "NULL"));
     if (photoFile) {
       const fileExt = photoFile.name.split(".").pop();
       const fileName = `${memorial.id}-main.${fileExt}`;
@@ -88,6 +89,8 @@ export default function CreateMemorial() {
       const { error: uploadError } = await supabase.storage
         .from("memorial-photos")
         .upload(fileName, photoFile);
+
+      alert("Upload result: " + (uploadError ? uploadError.message : "SUCCESS"));
 
       if (uploadError) {
         console.error("Photo upload failed:", uploadError.message);
