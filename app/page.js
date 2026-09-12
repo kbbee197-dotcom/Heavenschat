@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Particles from "./components/Particles";
 
 export default function Home() {
   const [stage, setStage] = useState("gate");
   const [showText, setShowText] = useState(true);
+  const router = useRouter();
   const gateVideoRef = useRef(null);
 
   useEffect(() => {
@@ -144,7 +146,7 @@ export default function Home() {
             <p className="text-white/70 text-xs text-center max-w-xs">
               This is a sample. Every pet deserves a place like this.
             </p>
-            <button className="px-8 py-3 rounded-full font-serif text-sm tracking-wide text-amber-50 backdrop-blur-md bg-white/10 border border-amber-200/50 shadow-[0_0_20px_rgba(255,223,150,0.25)] hover:bg-white/20 hover:border-amber-200/80 transition-all duration-300">
+            <button onClick={() => router.push("/signup")} className="px-8 py-3 rounded-full font-serif text-sm tracking-wide text-amber-50 backdrop-blur-md bg-white/10 border border-amber-200/50 shadow-[0_0_20px_rgba(255,223,150,0.25)] hover:bg-white/20 hover:border-amber-200/80 transition-all duration-300">
               Create a Memorial Like This
             </button>
           </div>
@@ -198,7 +200,7 @@ export default function Home() {
             <p className="text-white/70 text-xs text-center max-w-xs">
               This is a sample. Your loved one deserves a place like this.
             </p>
-            <button className="px-8 py-3 rounded-full font-serif text-sm tracking-wide text-amber-50 backdrop-blur-md bg-white/10 border border-amber-200/50 shadow-[0_0_20px_rgba(255,223,150,0.25)] hover:bg-white/20 hover:border-amber-200/80 transition-all duration-300">
+            <button onClick={() => router.push("/signup")} className="px-8 py-3 rounded-full font-serif text-sm tracking-wide text-amber-50 backdrop-blur-md bg-white/10 border border-amber-200/50 shadow-[0_0_20px_rgba(255,223,150,0.25)] hover:bg-white/20 hover:border-amber-200/80 transition-all duration-300">
               Create a Memorial Like This
             </button>
           </div>
