@@ -89,7 +89,10 @@ export default function CreateMemorial() {
         .from("memorial-photos")
         .upload(fileName, photoFile);
 
-      if (!uploadError) {
+      if (uploadError) {
+        console.error("Photo upload failed:", uploadError.message);
+        setError("Photo upload failed: " + uploadError.message);
+      } else {
         const { data: urlData } = supabase.storage
           .from("memorial-photos")
           .getPublicUrl(fileName);
