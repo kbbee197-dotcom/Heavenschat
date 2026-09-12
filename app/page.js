@@ -9,7 +9,11 @@ export default function Home() {
   const [showText, setShowText] = useState(true);
   const router = useRouter();
   const gateVideoRef = useRef(null);
+  const walkwayVideoRef = useRef(null);
+  const petsVideoRef = useRef(null);
+  const lovedOnesVideoRef = useRef(null);
   const userStartedRef = useRef(false);
+  const [soundOn, setSoundOn] = useState(true);
 
   useEffect(() => {
     const v = gateVideoRef.current;
@@ -30,8 +34,26 @@ export default function Home() {
     userStartedRef.current = true;
     if (gateVideoRef.current) {
       gateVideoRef.current.currentTime = 0;
+      gateVideoRef.current.muted = false;
+      gateVideoRef.current.volume = 1;
       gateVideoRef.current.play();
     }
+    [walkwayVideoRef, petsVideoRef, lovedOnesVideoRef].forEach((ref) => {
+      if (ref.current) {
+        ref.current.muted = false;
+        ref.current.volume = 1;
+      }
+    });
+  };
+
+  const toggleSound = () => {
+    const newState = !soundOn;
+    setSoundOn(newState);
+    [gateVideoRef, walkwayVideoRef, petsVideoRef, lovedOnesVideoRef].forEach((ref) => {
+      if (ref.current) {
+        ref.current.muted = !newState;
+      }
+    });
   };
 
   const handleGateEnd = () => setStage("walkway");
@@ -46,6 +68,14 @@ export default function Home() {
 
   return (
     <main className="relative h-screen w-screen overflow-hidden bg-black">
+      {stage !== "gate" && (
+        <button
+          onClick={toggleSound}
+          className="fixed top-4 right-4 z-50 w-10 h-10 rounded-full bg-black/40 backdrop-blur-md border border-white/20 flex items-center justify-center text-white text-lg"
+        >
+          {soundOn ? "\ud83d\udd0a" : "\ud83d\udd07"}
+        </button>
+      )}
       {/* GATE LAYER */}
       <div
         onClick={stage === "gate" ? startOpening : undefined}
@@ -78,6 +108,7 @@ export default function Home() {
       {/* WALKWAY LAYER */}
       <div className={layerClass("walkway")}>
         <video
+          ref={walkwayVideoRef}
           src="/videos/walkway-fork.mp4"
           autoPlay
           loop
@@ -107,6 +138,7 @@ export default function Home() {
       {/* PETS MEMORIAL LAYER */}
       <div className={layerClass("pets")}>
         <video
+          ref={petsVideoRef}
           src="/videos/pets-memorial.mp4"
           autoPlay
           loop
@@ -161,6 +193,7 @@ export default function Home() {
       {/* LOVED ONES MEMORIAL LAYER */}
       <div className={layerClass("loved-ones")}>
         <video
+          ref={lovedOnesVideoRef}
           src="/videos/loved-ones-memorial.mp4"
           autoPlay
           loop
