@@ -65,7 +65,7 @@ export default function LoginPage() {
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full px-4 py-2 mb-4 rounded-lg bg-white/90 border border-amber-200/50 focus:outline-none focus:ring-2 focus:ring-amber-400"
+          className="w-full px-4 py-2 mb-4 rounded-lg bg-white/90 text-gray-900 border border-amber-200/50 focus:outline-none focus:ring-2 focus:ring-amber-400"
         />
 
         <label className="block text-sm text-amber-50/90 mb-1">Password</label>
@@ -74,7 +74,7 @@ export default function LoginPage() {
           required
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full px-4 py-2 mb-6 rounded-lg bg-white/90 border border-amber-200/50 focus:outline-none focus:ring-2 focus:ring-amber-400"
+          className="w-full px-4 py-2 mb-6 rounded-lg bg-white/90 text-gray-900 border border-amber-200/50 focus:outline-none focus:ring-2 focus:ring-amber-400"
         />
 
         <button

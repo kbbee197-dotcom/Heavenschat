@@ -187,28 +187,99 @@ export default function CreateMemorial() {
               className="w-full px-4 py-2 mb-3 rounded-lg bg-white/90 text-gray-900 border border-amber-200/50 focus:outline-none focus:ring-2 focus:ring-amber-400"
             />
 
-            <div className="flex gap-3 mb-3">
-              <div className="flex-1">
-                <label className="block text-sm text-amber-50/90 mb-1">
-                  Born
-                </label>
-                <input
-                  type="date"
-                  value={form.date_born}
-                  onChange={(e) => updateField("date_born", e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-white/90 text-gray-900 border border-amber-200/50 focus:outline-none focus:ring-2 focus:ring-amber-400 text-sm"
-                />
+            <div className="mb-3">
+              <label className="block text-sm text-amber-50/90 mb-1">Born</label>
+              <div className="flex gap-2">
+                <select
+                  value={form.date_born ? form.date_born.split("-")[1] : ""}
+                  onChange={(e) => {
+                    const y = form.date_born ? form.date_born.split("-")[0] : "1990";
+                    const d = form.date_born ? form.date_born.split("-")[2] : "01";
+                    updateField("date_born", `${y}-${e.target.value}-${d}`);
+                  }}
+                  className="flex-1 px-2 py-2 rounded-lg bg-white/90 text-gray-900 border border-amber-200/50 text-sm"
+                >
+                  <option value="">Month</option>
+                  {["01","02","03","04","05","06","07","08","09","10","11","12"].map((m, i) => (
+                    <option key={m} value={m}>{["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][i]}</option>
+                  ))}
+                </select>
+                <select
+                  value={form.date_born ? form.date_born.split("-")[2] : ""}
+                  onChange={(e) => {
+                    const y = form.date_born ? form.date_born.split("-")[0] : "1990";
+                    const m = form.date_born ? form.date_born.split("-")[1] : "01";
+                    updateField("date_born", `${y}-${m}-${e.target.value}`);
+                  }}
+                  className="w-20 px-2 py-2 rounded-lg bg-white/90 text-gray-900 border border-amber-200/50 text-sm"
+                >
+                  <option value="">Day</option>
+                  {Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, "0")).map((d) => (
+                    <option key={d} value={d}>{d}</option>
+                  ))}
+                </select>
+                <select
+                  value={form.date_born ? form.date_born.split("-")[0] : ""}
+                  onChange={(e) => {
+                    const m = form.date_born ? form.date_born.split("-")[1] : "01";
+                    const d = form.date_born ? form.date_born.split("-")[2] : "01";
+                    updateField("date_born", `${e.target.value}-${m}-${d}`);
+                  }}
+                  className="w-24 px-2 py-2 rounded-lg bg-white/90 text-gray-900 border border-amber-200/50 text-sm"
+                >
+                  <option value="">Year</option>
+                  {Array.from({ length: 130 }, (_, i) => 2026 - i).map((y) => (
+                    <option key={y} value={y}>{y}</option>
+                  ))}
+                </select>
               </div>
-              <div className="flex-1">
-                <label className="block text-sm text-amber-50/90 mb-1">
-                  Passed
-                </label>
-                <input
-                  type="date"
-                  value={form.date_passed}
-                  onChange={(e) => updateField("date_passed", e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-white/90 text-gray-900 border border-amber-200/50 focus:outline-none focus:ring-2 focus:ring-amber-400 text-sm"
-                />
+            </div>
+
+            <div className="mb-3">
+              <label className="block text-sm text-amber-50/90 mb-1">Passed</label>
+              <div className="flex gap-2">
+                <select
+                  value={form.date_passed ? form.date_passed.split("-")[1] : ""}
+                  onChange={(e) => {
+                    const y = form.date_passed ? form.date_passed.split("-")[0] : "2026";
+                    const d = form.date_passed ? form.date_passed.split("-")[2] : "01";
+                    updateField("date_passed", `${y}-${e.target.value}-${d}`);
+                  }}
+                  className="flex-1 px-2 py-2 rounded-lg bg-white/90 text-gray-900 border border-amber-200/50 text-sm"
+                >
+                  <option value="">Month</option>
+                  {["01","02","03","04","05","06","07","08","09","10","11","12"].map((m, i) => (
+                    <option key={m} value={m}>{["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][i]}</option>
+                  ))}
+                </select>
+                <select
+                  value={form.date_passed ? form.date_passed.split("-")[2] : ""}
+                  onChange={(e) => {
+                    const y = form.date_passed ? form.date_passed.split("-")[0] : "2026";
+                    const m = form.date_passed ? form.date_passed.split("-")[1] : "01";
+                    updateField("date_passed", `${y}-${m}-${e.target.value}`);
+                  }}
+                  className="w-20 px-2 py-2 rounded-lg bg-white/90 text-gray-900 border border-amber-200/50 text-sm"
+                >
+                  <option value="">Day</option>
+                  {Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, "0")).map((d) => (
+                    <option key={d} value={d}>{d}</option>
+                  ))}
+                </select>
+                <select
+                  value={form.date_passed ? form.date_passed.split("-")[0] : ""}
+                  onChange={(e) => {
+                    const m = form.date_passed ? form.date_passed.split("-")[1] : "01";
+                    const d = form.date_passed ? form.date_passed.split("-")[2] : "01";
+                    updateField("date_passed", `${e.target.value}-${m}-${d}`);
+                  }}
+                  className="w-24 px-2 py-2 rounded-lg bg-white/90 text-gray-900 border border-amber-200/50 text-sm"
+                >
+                  <option value="">Year</option>
+                  {Array.from({ length: 130 }, (_, i) => 2026 - i).map((y) => (
+                    <option key={y} value={y}>{y}</option>
+                  ))}
+                </select>
               </div>
             </div>
 
