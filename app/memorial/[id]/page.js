@@ -46,6 +46,34 @@ export default function MemorialPage() {
     if (params.id) loadMemorial();
   }, [params.id]);
 
+  useEffect(() => {
+    if (!params.id) return;
+
+    const channel = supabase
+      .channel(`tributes-${params.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "tributes",
+          filter: `memorial_id=eq.${params.id}`,
+        },
+        (payload) => {
+          setTributes((current) => {
+            const alreadyExists = current.some((t) => t.id === payload.new.id);
+            if (alreadyExists) return current;
+            return [payload.new, ...current];
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [params.id]);
+
   const handleAddTribute = async (e) => {
     e.preventDefault();
     if (!authorName.trim() || !message.trim()) return;
@@ -87,8 +115,23 @@ export default function MemorialPage() {
     );
   }
 
+  const bgVideo =
+    memorial.type === "pet"
+      ? "/videos/pets-memorial.mp4"
+      : "/videos/loved-ones-memorial.mp4";
+
   return (
-    <main className="relative min-h-screen w-full overflow-hidden bg-gradient-to-b from-amber-100 via-amber-50 to-white">
+    <main className="relative min-h-screen w-full overflow-hidden bg-black">
+      <video
+        src={bgVideo}
+        autoPlay
+        loop
+        muted
+        playsInline
+        preload="auto"
+        className="fixed inset-0 w-full h-full object-cover"
+      />
+      <div className="fixed inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/70" />
       <div className="relative z-10 flex flex-col items-center px-6 py-16 max-w-md mx-auto">
         <p className="text-amber-700/70 text-xs tracking-widest uppercase font-light mb-3">
           {memorial.type === "pet" ? "In Loving Memory" : "In Loving Memory"}
