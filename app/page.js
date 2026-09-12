@@ -61,7 +61,6 @@ export default function Home() {
             muted
             playsInline
             preload="auto"
-            autoPlay
             onEnded={handleGateEnd}
             className="absolute inset-0 w-full h-full object-cover"
           />
