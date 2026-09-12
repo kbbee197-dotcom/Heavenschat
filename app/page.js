@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Particles from "./components/Particles";
 
@@ -8,8 +8,20 @@ export default function Home() {
   const [stage, setStage] = useState("gate");
   const [showText, setShowText] = useState(true);
   const [fading, setFading] = useState(false);
+  const [navigating, setNavigating] = useState(false);
   const gateVideoRef = useRef(null);
   const router = useRouter();
+
+  useEffect(() => {
+    const v = gateVideoRef.current;
+    if (!v) return;
+    const showFirstFrame = () => {
+      v.pause();
+      v.currentTime = 0;
+    };
+    v.addEventListener("loadeddata", showFirstFrame);
+    return () => v.removeEventListener("loadeddata", showFirstFrame);
+  }, []);
 
   const startOpening = () => {
     setShowText(false);
@@ -22,11 +34,12 @@ export default function Home() {
     setFading(true);
     setTimeout(() => {
       setStage("walkway");
+      setTimeout(() => setFading(false), 50);
     }, 600);
   };
 
   const choosePath = (path) => {
-    setFading(true);
+    setNavigating(true);
     setTimeout(() => {
       router.push(path === "pets" ? "/memorial/pets" : "/memorial/loved-ones");
     }, 500);
@@ -47,6 +60,8 @@ export default function Home() {
             src="/videos/gate-opening.mp4"
             muted
             playsInline
+            preload="auto"
+            autoPlay
             onEnded={handleGateEnd}
             className="absolute inset-0 w-full h-full object-cover"
           />
@@ -73,7 +88,7 @@ export default function Home() {
       {stage === "walkway" && (
         <div
           className={`absolute inset-0 overflow-hidden transition-opacity duration-700 ${
-            fading ? "opacity-0" : "opacity-100 animate-fadeIn"
+            navigating ? "opacity-0" : fading ? "opacity-0" : "opacity-100"
           }`}
         >
           <video
@@ -82,6 +97,7 @@ export default function Home() {
             loop
             muted
             playsInline
+            preload="auto"
             className="absolute inset-0 w-full h-full object-cover"
           />
 
