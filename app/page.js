@@ -47,6 +47,11 @@ export default function Home() {
 
   return (
     <main className="relative h-screen w-screen overflow-hidden bg-black">
+      {/* Preload upcoming videos in the background */}
+      <link rel="preload" href="/videos/walkway-fork.mp4" as="video" type="video/mp4" />
+      <link rel="preload" href="/videos/pets-memorial.mp4" as="video" type="video/mp4" />
+      <link rel="preload" href="/videos/loved-ones-memorial.mp4" as="video" type="video/mp4" />
+
       {/* GATE STAGE (video) */}
       {stage === "gate" && (
         <div
