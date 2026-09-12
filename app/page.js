@@ -9,21 +9,27 @@ export default function Home() {
   const [showText, setShowText] = useState(true);
   const router = useRouter();
   const gateVideoRef = useRef(null);
+  const userStartedRef = useRef(false);
 
   useEffect(() => {
     const v = gateVideoRef.current;
     if (!v) return;
-    const showFirstFrame = () => {
-      v.pause();
-      v.currentTime = 0;
+    const forceFrameThenPause = () => {
+      if (!userStartedRef.current) {
+        v.pause();
+        v.currentTime = 0;
+      }
     };
-    v.addEventListener("loadeddata", showFirstFrame);
-    return () => v.removeEventListener("loadeddata", showFirstFrame);
+    v.addEventListener("playing", forceFrameThenPause);
+    v.play().catch(() => {});
+    return () => v.removeEventListener("playing", forceFrameThenPause);
   }, []);
 
   const startOpening = () => {
     setShowText(false);
+    userStartedRef.current = true;
     if (gateVideoRef.current) {
+      gateVideoRef.current.currentTime = 0;
       gateVideoRef.current.play();
     }
   };
