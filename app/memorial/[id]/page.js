@@ -13,7 +13,6 @@ export default function MemorialPage() {
   const [authorName, setAuthorName] = useState("");
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [realtimeStatus, setRealtimeStatus] = useState("connecting");
 
   useEffect(() => {
     const loadMemorial = async () => {
@@ -50,10 +49,6 @@ export default function MemorialPage() {
   useEffect(() => {
     if (!params.id) return;
 
-    let channel;
-    let retryTimeout;
-    let stopped = false;
-
     const fetchLatestTributes = async () => {
       const { data } = await supabase
         .from("tributes")
@@ -63,44 +58,9 @@ export default function MemorialPage() {
       if (data) setTributes(data);
     };
 
-    const connect = () => {
-      if (stopped) return;
+    const interval = setInterval(fetchLatestTributes, 4000);
 
-      channel = supabase
-        .channel(`tributes-${params.id}-${Date.now()}`)
-        .on(
-          "postgres_changes",
-          {
-            event: "INSERT",
-            schema: "public",
-            table: "tributes",
-            filter: `memorial_id=eq.${params.id}`,
-          },
-          (payload) => {
-            setTributes((current) => {
-              const alreadyExists = current.some((t) => t.id === payload.new.id);
-              if (alreadyExists) return current;
-              return [payload.new, ...current];
-            });
-          }
-        )
-        .subscribe((status) => {
-          setRealtimeStatus(status);
-          if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
-            fetchLatestTributes();
-            if (channel) supabase.removeChannel(channel);
-            retryTimeout = setTimeout(connect, 2000);
-          }
-        });
-    };
-
-    connect();
-
-    return () => {
-      stopped = true;
-      clearTimeout(retryTimeout);
-      if (channel) supabase.removeChannel(channel);
-    };
+    return () => clearInterval(interval);
   }, [params.id]);
 
   const handleAddTribute = async (e) => {
@@ -208,9 +168,6 @@ export default function MemorialPage() {
         <h2 className="text-white font-serif text-lg mb-1 self-start">
           Tributes
         </h2>
-        <p className="text-amber-50/50 text-xs mb-4 self-start">
-          Live status: {realtimeStatus}
-        </p>
 
         <form
           onSubmit={handleAddTribute}
