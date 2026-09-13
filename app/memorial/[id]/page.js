@@ -13,6 +13,7 @@ export default function MemorialPage() {
   const [authorName, setAuthorName] = useState("");
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [realtimeStatus, setRealtimeStatus] = useState("connecting");
 
   useEffect(() => {
     const loadMemorial = async () => {
@@ -60,6 +61,7 @@ export default function MemorialPage() {
           filter: `memorial_id=eq.${params.id}`,
         },
         (payload) => {
+          alert("Live tribute received!");
           setTributes((current) => {
             const alreadyExists = current.some((t) => t.id === payload.new.id);
             if (alreadyExists) return current;
@@ -67,7 +69,9 @@ export default function MemorialPage() {
           });
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        setRealtimeStatus(status);
+      });
 
     return () => {
       supabase.removeChannel(channel);
@@ -176,9 +180,12 @@ export default function MemorialPage() {
           </div>
         )}
 
-        <h2 className="text-white font-serif text-lg mb-4 self-start">
+        <h2 className="text-white font-serif text-lg mb-1 self-start">
           Tributes
         </h2>
+        <p className="text-amber-50/50 text-xs mb-4 self-start">
+          Live status: {realtimeStatus}
+        </p>
 
         <form
           onSubmit={handleAddTribute}
