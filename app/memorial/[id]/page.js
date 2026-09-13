@@ -50,31 +50,56 @@ export default function MemorialPage() {
   useEffect(() => {
     if (!params.id) return;
 
-    const channel = supabase
-      .channel(`tributes-${params.id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "tributes",
-          filter: `memorial_id=eq.${params.id}`,
-        },
-        (payload) => {
-          alert("Live tribute received!");
-          setTributes((current) => {
-            const alreadyExists = current.some((t) => t.id === payload.new.id);
-            if (alreadyExists) return current;
-            return [payload.new, ...current];
-          });
-        }
-      )
-      .subscribe((status) => {
-        setRealtimeStatus(status);
-      });
+    let channel;
+    let retryTimeout;
+    let stopped = false;
+
+    const fetchLatestTributes = async () => {
+      const { data } = await supabase
+        .from("tributes")
+        .select("*")
+        .eq("memorial_id", params.id)
+        .order("created_at", { ascending: false });
+      if (data) setTributes(data);
+    };
+
+    const connect = () => {
+      if (stopped) return;
+
+      channel = supabase
+        .channel(`tributes-${params.id}-${Date.now()}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "tributes",
+            filter: `memorial_id=eq.${params.id}`,
+          },
+          (payload) => {
+            setTributes((current) => {
+              const alreadyExists = current.some((t) => t.id === payload.new.id);
+              if (alreadyExists) return current;
+              return [payload.new, ...current];
+            });
+          }
+        )
+        .subscribe((status) => {
+          setRealtimeStatus(status);
+          if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+            fetchLatestTributes();
+            if (channel) supabase.removeChannel(channel);
+            retryTimeout = setTimeout(connect, 2000);
+          }
+        });
+    };
+
+    connect();
 
     return () => {
-      supabase.removeChannel(channel);
+      stopped = true;
+      clearTimeout(retryTimeout);
+      if (channel) supabase.removeChannel(channel);
     };
   }, [params.id]);
 
