@@ -16,6 +16,9 @@ export default function MemorialPage() {
   const [candleCount, setCandleCount] = useState(0);
   const [lighting, setLighting] = useState(false);
   const [candleMessage, setCandleMessage] = useState("");
+  const [flowerCount, setFlowerCount] = useState(0);
+  const [sending, setSending] = useState(false);
+  const [flowerMessage, setFlowerMessage] = useState("");
 
   useEffect(() => {
     const loadMemorial = async () => {
@@ -49,6 +52,13 @@ export default function MemorialPage() {
         .eq("memorial_id", params.id);
 
       setCandleCount(count || 0);
+
+      const { count: flowerCountResult } = await supabase
+        .from("flowers")
+        .select("*", { count: "exact", head: true })
+        .eq("memorial_id", params.id);
+
+      setFlowerCount(flowerCountResult || 0);
       setLoading(false);
     };
 
@@ -124,6 +134,60 @@ export default function MemorialPage() {
     setCandleCount((c) => c + 1);
     setCandleMessage("A candle has been lit. 🕯️");
     setLighting(false);
+  };
+
+  const handleSendFlower = async () => {
+    setSending(true);
+    setFlowerMessage("");
+
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) {
+      setFlowerMessage("Please log in to send flowers.");
+      setSending(false);
+      return;
+    }
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("token_balance")
+      .eq("id", userData.user.id)
+      .single();
+
+    if (!profile || (profile.token_balance || 0) < 20) {
+      setFlowerMessage("Not enough tokens. You need 20 tokens to send flowers.");
+      setSending(false);
+      return;
+    }
+
+    const newBalance = profile.token_balance - 20;
+
+    const { error: updateError } = await supabase
+      .from("profiles")
+      .update({ token_balance: newBalance })
+      .eq("id", userData.user.id);
+
+    if (updateError) {
+      setFlowerMessage("Something went wrong. Please try again.");
+      setSending(false);
+      return;
+    }
+
+    await supabase.from("token_transactions").insert({
+      user_id: userData.user.id,
+      amount: -20,
+      type: "flower",
+      description: `Sent flowers for ${memorial.full_name}`,
+    });
+
+    await supabase.from("flowers").insert({
+      memorial_id: params.id,
+      sent_by: userData.user.id,
+      sent_by_name: userData.user.email,
+    });
+
+    setFlowerCount((c) => c + 1);
+    setFlowerMessage("Flowers have been sent. 🌸");
+    setSending(false);
   };
 
   const handleAddTribute = async (e) => {
@@ -241,23 +305,44 @@ export default function MemorialPage() {
           </div>
         )}
 
-        <div className="w-full bg-black/30 backdrop-blur-md border border-amber-200/30 rounded-2xl p-5 mb-8 flex flex-col items-center">
-          <p className="text-amber-100 text-3xl mb-2">🕯️</p>
-          <p className="text-white text-sm mb-1">
-            {candleCount} {candleCount === 1 ? "candle" : "candles"} lit
-          </p>
-          <button
-            onClick={handleLightCandle}
-            disabled={lighting}
-            className="mt-2 px-6 py-2 rounded-full font-serif text-sm tracking-wide text-amber-50 backdrop-blur-md bg-white/10 border border-amber-200/50 shadow-[0_0_20px_rgba(255,223,150,0.25)] hover:bg-white/20 hover:border-amber-200/80 transition-all duration-300 disabled:opacity-50"
-          >
-            {lighting ? "Lighting..." : "Light a Candle (20 tokens)"}
-          </button>
-          {candleMessage && (
-            <p className="text-amber-100/80 text-xs mt-3 text-center">
-              {candleMessage}
+        <div className="w-full grid grid-cols-2 gap-3 mb-8">
+          <div className="bg-black/30 backdrop-blur-md border border-amber-200/30 rounded-2xl p-4 flex flex-col items-center">
+            <p className="text-amber-100 text-2xl mb-1">🕯️</p>
+            <p className="text-white text-xs mb-2 text-center">
+              {candleCount} {candleCount === 1 ? "candle" : "candles"} lit
             </p>
-          )}
+            <button
+              onClick={handleLightCandle}
+              disabled={lighting}
+              className="px-4 py-2 rounded-full font-serif text-xs tracking-wide text-amber-50 backdrop-blur-md bg-white/10 border border-amber-200/50 shadow-[0_0_20px_rgba(255,223,150,0.25)] hover:bg-white/20 hover:border-amber-200/80 transition-all duration-300 disabled:opacity-50"
+            >
+              {lighting ? "Lighting..." : "Light Candle (20)"}
+            </button>
+            {candleMessage && (
+              <p className="text-amber-100/80 text-xs mt-2 text-center">
+                {candleMessage}
+              </p>
+            )}
+          </div>
+
+          <div className="bg-black/30 backdrop-blur-md border border-amber-200/30 rounded-2xl p-4 flex flex-col items-center">
+            <p className="text-amber-100 text-2xl mb-1">🌸</p>
+            <p className="text-white text-xs mb-2 text-center">
+              {flowerCount} {flowerCount === 1 ? "flower" : "flowers"} sent
+            </p>
+            <button
+              onClick={handleSendFlower}
+              disabled={sending}
+              className="px-4 py-2 rounded-full font-serif text-xs tracking-wide text-amber-50 backdrop-blur-md bg-white/10 border border-amber-200/50 shadow-[0_0_20px_rgba(255,223,150,0.25)] hover:bg-white/20 hover:border-amber-200/80 transition-all duration-300 disabled:opacity-50"
+            >
+              {sending ? "Sending..." : "Send Flowers (20)"}
+            </button>
+            {flowerMessage && (
+              <p className="text-amber-100/80 text-xs mt-2 text-center">
+                {flowerMessage}
+              </p>
+            )}
+          </div>
         </div>
 
         <h2 className="text-white font-serif text-lg mb-1 self-start">
