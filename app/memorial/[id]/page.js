@@ -13,6 +13,8 @@ export default function MemorialPage() {
   const [authorName, setAuthorName] = useState("");
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [showStore, setShowStore] = useState(false);
+  const [showTributeForm, setShowTributeForm] = useState(false);
   const [candleCount, setCandleCount] = useState(0);
   const [lighting, setLighting] = useState(false);
   const [candleMessage, setCandleMessage] = useState("");
@@ -250,9 +252,78 @@ export default function MemorialPage() {
         className="fixed inset-0 w-full h-full object-cover"
       />
       <div className="fixed inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/70" />
+
+      <button
+        onClick={() => setShowStore(true)}
+        className="fixed top-16 right-4 z-[90] w-9 h-9 rounded-full bg-black/30 backdrop-blur-md border border-amber-200/30 flex items-center justify-center text-lg hover:bg-black/40 transition"
+        aria-label="Open gift store"
+      >
+        🎁
+      </button>
+
+      {showStore && (
+        <div
+          className="fixed inset-0 z-[95] bg-black/60 backdrop-blur-sm flex items-center justify-center px-6"
+          onClick={() => setShowStore(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-sm bg-black/70 backdrop-blur-md border border-amber-200/30 rounded-2xl p-6"
+          >
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-white font-serif text-lg">Gift Store</h3>
+              <button
+                onClick={() => setShowStore(false)}
+                className="text-white/60 text-xl leading-none"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between bg-white/10 rounded-xl px-4 py-3 mb-3">
+              <div>
+                <p className="text-white text-sm">🕯️ Candle</p>
+                <p className="text-amber-50/60 text-xs">{candleCount} lit so far</p>
+              </div>
+              <button
+                onClick={handleLightCandle}
+                disabled={lighting}
+                className="px-4 py-2 rounded-full text-xs font-medium bg-amber-500/80 text-white hover:bg-amber-500 transition disabled:opacity-50"
+              >
+                {lighting ? "..." : "20 tokens"}
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between bg-white/10 rounded-xl px-4 py-3 mb-3">
+              <div>
+                <p className="text-white text-sm">🌸 Flowers</p>
+                <p className="text-amber-50/60 text-xs">{flowerCount} sent so far</p>
+              </div>
+              <button
+                onClick={handleSendFlower}
+                disabled={sending}
+                className="px-4 py-2 rounded-full text-xs font-medium bg-amber-500/80 text-white hover:bg-amber-500 transition disabled:opacity-50"
+              >
+                {sending ? "..." : "20 tokens"}
+              </button>
+            </div>
+
+            {(candleMessage || flowerMessage) && (
+              <p className="text-amber-100/80 text-xs text-center mt-2">
+                {candleMessage || flowerMessage}
+              </p>
+            )}
+
+            <p className="text-amber-50/40 text-xs text-center mt-4">
+              More gifts coming soon.
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="relative z-10 flex flex-col items-center px-6 py-16 max-w-md mx-auto">
-        <p className="text-amber-700/70 text-xs tracking-widest uppercase font-light mb-3">
-          {memorial.type === "pet" ? "In Loving Memory" : "In Loving Memory"}
+        <p className="text-gray-900 text-xs tracking-widest uppercase font-semibold mb-3 drop-shadow-[0_1px_3px_rgba(255,255,255,0.6)]">
+          In Loving Memory
         </p>
 
         {photos.length > 0 && (
@@ -305,76 +376,49 @@ export default function MemorialPage() {
           </div>
         )}
 
-        <div className="w-full grid grid-cols-2 gap-3 mb-8">
-          <div className="bg-black/30 backdrop-blur-md border border-amber-200/30 rounded-2xl p-4 flex flex-col items-center">
-            <p className="text-amber-100 text-2xl mb-1">🕯️</p>
-            <p className="text-white text-xs mb-2 text-center">
-              {candleCount} {candleCount === 1 ? "candle" : "candles"} lit
-            </p>
-            <button
-              onClick={handleLightCandle}
-              disabled={lighting}
-              className="px-4 py-2 rounded-full font-serif text-xs tracking-wide text-amber-50 backdrop-blur-md bg-white/10 border border-amber-200/50 shadow-[0_0_20px_rgba(255,223,150,0.25)] hover:bg-white/20 hover:border-amber-200/80 transition-all duration-300 disabled:opacity-50"
-            >
-              {lighting ? "Lighting..." : "Light Candle (20)"}
-            </button>
-            {candleMessage && (
-              <p className="text-amber-100/80 text-xs mt-2 text-center">
-                {candleMessage}
-              </p>
-            )}
-          </div>
-
-          <div className="bg-black/30 backdrop-blur-md border border-amber-200/30 rounded-2xl p-4 flex flex-col items-center">
-            <p className="text-amber-100 text-2xl mb-1">🌸</p>
-            <p className="text-white text-xs mb-2 text-center">
-              {flowerCount} {flowerCount === 1 ? "flower" : "flowers"} sent
-            </p>
-            <button
-              onClick={handleSendFlower}
-              disabled={sending}
-              className="px-4 py-2 rounded-full font-serif text-xs tracking-wide text-amber-50 backdrop-blur-md bg-white/10 border border-amber-200/50 shadow-[0_0_20px_rgba(255,223,150,0.25)] hover:bg-white/20 hover:border-amber-200/80 transition-all duration-300 disabled:opacity-50"
-            >
-              {sending ? "Sending..." : "Send Flowers (20)"}
-            </button>
-            {flowerMessage && (
-              <p className="text-amber-100/80 text-xs mt-2 text-center">
-                {flowerMessage}
-              </p>
-            )}
-          </div>
+        <div className="w-full flex items-center justify-center gap-6 mb-8 text-white/80 text-sm">
+          <span>🕯️ {candleCount}</span>
+          <span>🌸 {flowerCount}</span>
         </div>
 
-        <h2 className="text-white font-serif text-lg mb-1 self-start">
-          Tributes
-        </h2>
-
-        <form
-          onSubmit={handleAddTribute}
-          className="w-full bg-black/30 backdrop-blur-md backdrop-blur-sm border border-amber-200/30 rounded-xl p-4 mb-6 shadow-sm"
+        <button
+          onClick={() => setShowTributeForm(!showTributeForm)}
+          className="w-full flex items-center justify-between mb-3"
         >
-          <input
-            type="text"
-            placeholder="Your name"
-            value={authorName}
-            onChange={(e) => setAuthorName(e.target.value)}
-            className="w-full px-3 py-2 mb-2 rounded-lg border border-amber-200/30 text-sm text-white"
-          />
-          <textarea
-            placeholder="Leave a message..."
-            rows={3}
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            className="w-full px-3 py-2 mb-2 rounded-lg border border-amber-200/30 text-sm text-white resize-none"
-          />
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full bg-amber-600 hover:bg-amber-700 text-white py-2 rounded-lg text-sm font-medium transition disabled:opacity-50"
+          <h2 className="text-white font-serif text-lg">Tributes</h2>
+          <span className="text-white/60 text-sm">
+            {showTributeForm ? "▲ Close" : "▼ Leave a message"}
+          </span>
+        </button>
+
+        {showTributeForm && (
+          <form
+            onSubmit={handleAddTribute}
+            className="w-full bg-black/30 backdrop-blur-md backdrop-blur-sm border border-amber-200/30 rounded-xl p-4 mb-6 shadow-sm"
           >
-            {submitting ? "Posting..." : "Leave a Tribute"}
-          </button>
-        </form>
+            <input
+              type="text"
+              placeholder="Your name"
+              value={authorName}
+              onChange={(e) => setAuthorName(e.target.value)}
+              className="w-full px-3 py-2 mb-2 rounded-lg border border-amber-200/30 text-sm text-white"
+            />
+            <textarea
+              placeholder="Leave a message..."
+              rows={3}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              className="w-full px-3 py-2 mb-2 rounded-lg border border-amber-200/30 text-sm text-white resize-none"
+            />
+            <button
+              type="submit"
+              disabled={submitting}
+              className="w-full bg-amber-600 hover:bg-amber-700 text-white py-2 rounded-lg text-sm font-medium transition disabled:opacity-50"
+            >
+              {submitting ? "Posting..." : "Leave a Tribute"}
+            </button>
+          </form>
+        )}
 
         <div className="w-full space-y-3">
           {tributes.length === 0 && (
