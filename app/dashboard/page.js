@@ -1,13 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 
 export default function Dashboard() {
+  return (
+    <Suspense fallback={null}>
+      <DashboardInner />
+    </Suspense>
+  );
+}
+
+function DashboardInner() {
   const [memorials, setMemorials] = useState([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const hitLimit = searchParams.get("limit") === "free-plot-used";
 
   useEffect(() => {
     const loadData = async () => {
@@ -46,6 +56,13 @@ export default function Dashboard() {
       <div className="absolute inset-0 bg-black/30" />
 
       <div className="relative z-10 w-full max-w-md">
+        {hitLimit && (
+          <div className="bg-amber-500/20 border border-amber-300/50 rounded-xl px-4 py-3 mb-4 text-center">
+            <p className="text-amber-50 text-sm">
+              Your free plot is already in use. Upgrade to create additional memorials.
+            </p>
+          </div>
+        )}
         <div className="bg-white/10 backdrop-blur-md border border-amber-200/30 rounded-2xl shadow-lg p-6 mb-4">
           <h1 className="text-2xl font-serif text-center mb-2 text-white">
             Your Memorials

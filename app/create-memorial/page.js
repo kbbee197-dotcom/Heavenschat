@@ -27,14 +27,29 @@ export default function CreateMemorial() {
   const [photoFiles, setPhotoFiles] = useState([]);
   const [photoPreviews, setPhotoPreviews] = useState([]);
 
+  const [checkingLimit, setCheckingLimit] = useState(true);
+
   useEffect(() => {
     const checkUser = async () => {
       const { data } = await supabase.auth.getUser();
       if (!data.user) {
         router.push("/login");
-      } else {
-        setUserId(data.user.id);
+        return;
       }
+
+      setUserId(data.user.id);
+
+      const { count } = await supabase
+        .from("memorials")
+        .select("*", { count: "exact", head: true })
+        .eq("owner_id", data.user.id);
+
+      if (count && count >= 1) {
+        router.push("/dashboard?limit=free-plot-used");
+        return;
+      }
+
+      setCheckingLimit(false);
     };
     checkUser();
   }, [router]);
@@ -116,6 +131,14 @@ export default function CreateMemorial() {
     setLoading(false);
     router.push("/dashboard");
   };
+
+  if (checkingLimit) {
+    return (
+      <main className="min-h-screen bg-black flex items-center justify-center">
+        <p className="text-amber-50/70 text-sm">Loading...</p>
+      </main>
+    );
+  }
 
   return (
     <main className="relative min-h-screen w-full overflow-hidden bg-black flex items-center justify-center px-6 py-16">
