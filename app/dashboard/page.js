@@ -14,6 +14,7 @@ export default function Dashboard() {
 
 function DashboardInner() {
   const [memorials, setMemorials] = useState([]);
+  const [tokenBalance, setTokenBalance] = useState(0);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -36,6 +37,35 @@ function DashboardInner() {
       if (!error) {
         setMemorials(data);
       }
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("token_balance, last_login_bonus")
+        .eq("id", userData.user.id)
+        .single();
+
+      if (profile) {
+        const today = new Date().toISOString().split("T")[0];
+        if (profile.last_login_bonus !== today) {
+          const newBalance = (profile.token_balance || 0) + 5;
+          await supabase
+            .from("profiles")
+            .update({ token_balance: newBalance, last_login_bonus: today })
+            .eq("id", userData.user.id);
+
+          await supabase.from("token_transactions").insert({
+            user_id: userData.user.id,
+            amount: 5,
+            type: "daily_bonus",
+            description: "Daily login bonus",
+          });
+
+          setTokenBalance(newBalance);
+        } else {
+          setTokenBalance(profile.token_balance || 0);
+        }
+      }
+
       setLoading(false);
     };
 
@@ -63,6 +93,15 @@ function DashboardInner() {
             </p>
           </div>
         )}
+        <div className="flex justify-end mb-3">
+          <button
+            onClick={() => router.push("/settings")}
+            className="text-amber-50/70 text-xs underline hover:text-amber-50"
+          >
+            Profile & Tokens
+          </button>
+        </div>
+
         <div className="bg-white/10 backdrop-blur-md border border-amber-200/30 rounded-2xl shadow-lg p-6 mb-4">
           <h1 className="text-2xl font-serif text-center mb-2 text-white">
             Your Memorials
