@@ -13,6 +13,9 @@ export default function MemorialPage() {
   const [authorName, setAuthorName] = useState("");
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [candleCount, setCandleCount] = useState(0);
+  const [lighting, setLighting] = useState(false);
+  const [candleMessage, setCandleMessage] = useState("");
 
   useEffect(() => {
     const loadMemorial = async () => {
@@ -39,6 +42,13 @@ export default function MemorialPage() {
         .order("created_at", { ascending: false });
 
       setTributes(tributeData || []);
+
+      const { count } = await supabase
+        .from("candles")
+        .select("*", { count: "exact", head: true })
+        .eq("memorial_id", params.id);
+
+      setCandleCount(count || 0);
       setLoading(false);
     };
 
@@ -61,6 +71,60 @@ export default function MemorialPage() {
 
     return () => clearInterval(interval);
   }, [params.id]);
+
+  const handleLightCandle = async () => {
+    setLighting(true);
+    setCandleMessage("");
+
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) {
+      setCandleMessage("Please log in to light a candle.");
+      setLighting(false);
+      return;
+    }
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("token_balance")
+      .eq("id", userData.user.id)
+      .single();
+
+    if (!profile || (profile.token_balance || 0) < 20) {
+      setCandleMessage("Not enough tokens. You need 20 tokens to light a candle.");
+      setLighting(false);
+      return;
+    }
+
+    const newBalance = profile.token_balance - 20;
+
+    const { error: updateError } = await supabase
+      .from("profiles")
+      .update({ token_balance: newBalance })
+      .eq("id", userData.user.id);
+
+    if (updateError) {
+      setCandleMessage("Something went wrong. Please try again.");
+      setLighting(false);
+      return;
+    }
+
+    await supabase.from("token_transactions").insert({
+      user_id: userData.user.id,
+      amount: -20,
+      type: "candle",
+      description: `Lit a candle for ${memorial.full_name}`,
+    });
+
+    await supabase.from("candles").insert({
+      memorial_id: params.id,
+      lit_by: userData.user.id,
+      lit_by_name: userData.user.email,
+    });
+
+    setCandleCount((c) => c + 1);
+    setCandleMessage("A candle has been lit. 🕯️");
+    setLighting(false);
+  };
 
   const handleAddTribute = async (e) => {
     e.preventDefault();
@@ -176,6 +240,25 @@ export default function MemorialPage() {
             ))}
           </div>
         )}
+
+        <div className="w-full bg-black/30 backdrop-blur-md border border-amber-200/30 rounded-2xl p-5 mb-8 flex flex-col items-center">
+          <p className="text-amber-100 text-3xl mb-2">🕯️</p>
+          <p className="text-white text-sm mb-1">
+            {candleCount} {candleCount === 1 ? "candle" : "candles"} lit
+          </p>
+          <button
+            onClick={handleLightCandle}
+            disabled={lighting}
+            className="mt-2 px-6 py-2 rounded-full font-serif text-sm tracking-wide text-amber-50 backdrop-blur-md bg-white/10 border border-amber-200/50 shadow-[0_0_20px_rgba(255,223,150,0.25)] hover:bg-white/20 hover:border-amber-200/80 transition-all duration-300 disabled:opacity-50"
+          >
+            {lighting ? "Lighting..." : "Light a Candle (20 tokens)"}
+          </button>
+          {candleMessage && (
+            <p className="text-amber-100/80 text-xs mt-3 text-center">
+              {candleMessage}
+            </p>
+          )}
+        </div>
 
         <h2 className="text-white font-serif text-lg mb-1 self-start">
           Tributes
