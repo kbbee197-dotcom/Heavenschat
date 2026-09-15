@@ -24,8 +24,8 @@ export default function CreateMemorial() {
     is_public: true,
   });
 
-  const [photoFile, setPhotoFile] = useState(null);
-  const [photoPreview, setPhotoPreview] = useState(null);
+  const [photoFiles, setPhotoFiles] = useState([]);
+  const [photoPreviews, setPhotoPreviews] = useState([]);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -44,11 +44,16 @@ export default function CreateMemorial() {
   };
 
   const handlePhotoChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setPhotoFile(file);
-      setPhotoPreview(URL.createObjectURL(file));
-    }
+    const newFiles = Array.from(e.target.files);
+    const combined = [...photoFiles, ...newFiles].slice(0, 3);
+    setPhotoFiles(combined);
+    setPhotoPreviews(combined.map((f) => URL.createObjectURL(f)));
+  };
+
+  const removePhoto = (index) => {
+    const updatedFiles = photoFiles.filter((_, i) => i !== index);
+    setPhotoFiles(updatedFiles);
+    setPhotoPreviews(updatedFiles.map((f) => URL.createObjectURL(f)));
   };
 
   const nextStep = () => setStep((s) => Math.min(s + 1, 3));
@@ -81,30 +86,31 @@ export default function CreateMemorial() {
       return;
     }
 
-    if (photoFile) {
-      const fileExt = photoFile.name.split(".").pop();
-      const fileName = `${memorial.id}-main.${fileExt}`;
+    for (let i = 0; i < photoFiles.length; i++) {
+      const file = photoFiles[i];
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${memorial.id}-${i}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from("memorial-photos")
-        .upload(fileName, photoFile);
+        .upload(fileName, file);
 
       if (uploadError) {
         console.error("Photo upload failed:", uploadError.message);
         setError("Photo upload failed: " + uploadError.message);
         setLoading(false);
         return;
-      } else {
-        const { data: urlData } = supabase.storage
-          .from("memorial-photos")
-          .getPublicUrl(fileName);
-
-        await supabase.from("memorial_photos").insert({
-          memorial_id: memorial.id,
-          photo_url: urlData.publicUrl,
-          caption: "Main photo",
-        });
       }
+
+      const { data: urlData } = supabase.storage
+        .from("memorial-photos")
+        .getPublicUrl(fileName);
+
+      await supabase.from("memorial_photos").insert({
+        memorial_id: memorial.id,
+        photo_url: urlData.publicUrl,
+        caption: i === 0 ? "Main photo" : `Photo ${i + 1}`,
+      });
     }
 
     setLoading(false);
@@ -379,35 +385,48 @@ export default function CreateMemorial() {
         {step === 3 && (
           <div>
             <h2 className="text-white text-xl font-serif text-center mb-1">
-              Add a Photo
+              Add Photos
             </h2>
-            <p className="text-amber-50/70 text-sm text-center mb-6">
-              Choose a photo that captures their spirit.
+            <p className="text-amber-50/70 text-sm text-center mb-2">
+              Choose up to 3 photos that capture their spirit.
+            </p>
+            <p className="text-amber-200/60 text-xs text-center mb-6">
+              {photoPreviews.length}/3 free photos used
             </p>
 
-            <div className="flex flex-col items-center mb-6">
-              {photoPreview ? (
-                <img
-                  src={photoPreview}
-                  alt="Preview"
-                  className="w-40 h-40 object-cover rounded-xl mb-4 border border-amber-200/50"
-                />
-              ) : (
-                <div className="w-40 h-40 rounded-xl mb-4 border border-dashed border-amber-200/50 flex items-center justify-center text-amber-50/50 text-sm">
-                  No photo yet
+            <div className="grid grid-cols-3 gap-2 mb-4">
+              {photoPreviews.map((src, i) => (
+                <div key={i} className="relative">
+                  <img
+                    src={src}
+                    alt={`Preview ${i + 1}`}
+                    className="w-full aspect-square object-cover rounded-xl border border-amber-200/50"
+                  />
+                  <button
+                    onClick={() => removePhoto(i)}
+                    className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-black/70 text-white text-xs flex items-center justify-center"
+                  >
+                    ×
+                  </button>
                 </div>
+              ))}
+              {photoPreviews.length < 3 && (
+                <label className="aspect-square rounded-xl border border-dashed border-amber-200/50 flex items-center justify-center text-amber-50/50 text-2xl cursor-pointer hover:bg-white/10 transition">
+                  +
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handlePhotoChange}
+                    className="hidden"
+                  />
+                </label>
               )}
-
-              <label className="px-6 py-2 rounded-full text-sm font-medium bg-white/20 text-white cursor-pointer hover:bg-white/30 transition">
-                Choose Photo
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handlePhotoChange}
-                  className="hidden"
-                />
-              </label>
             </div>
+
+            <p className="text-amber-50/40 text-xs text-center mb-6">
+              Want more? Upgrade to add unlimited photos.
+            </p>
 
             <div className="flex gap-3">
               <button
