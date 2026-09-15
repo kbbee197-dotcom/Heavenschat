@@ -7,7 +7,7 @@ import { supabase } from "@/lib/supabaseClient";
 export default function MemorialPage() {
   const params = useParams();
   const [memorial, setMemorial] = useState(null);
-  const [photo, setPhoto] = useState(null);
+  const [photos, setPhotos] = useState([]);
   const [tributes, setTributes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [authorName, setAuthorName] = useState("");
@@ -24,14 +24,13 @@ export default function MemorialPage() {
 
       setMemorial(memorialData);
 
-      const { data: photoData } = await supabase
+      const { data: photosData } = await supabase
         .from("memorial_photos")
-        .select("photo_url")
+        .select("photo_url, caption")
         .eq("memorial_id", params.id)
-        .limit(1)
-        .single();
+        .order("created_at", { ascending: true });
 
-      setPhoto(photoData);
+      setPhotos(photosData || []);
 
       const { data: tributeData } = await supabase
         .from("tributes")
@@ -128,9 +127,9 @@ export default function MemorialPage() {
           {memorial.type === "pet" ? "In Loving Memory" : "In Loving Memory"}
         </p>
 
-        {photo && (
+        {photos.length > 0 && (
           <img
-            src={photo.photo_url}
+            src={photos[0].photo_url}
             alt={memorial.full_name}
             className="w-32 h-32 object-cover rounded-full mb-4 border-4 border-amber-200/30 shadow-lg"
           />
@@ -162,6 +161,19 @@ export default function MemorialPage() {
             <p className="text-white/90 text-sm leading-relaxed whitespace-pre-wrap">
               {memorial.story}
             </p>
+          </div>
+        )}
+
+        {photos.length > 1 && (
+          <div className="w-full grid grid-cols-3 gap-2 mb-8">
+            {photos.slice(1).map((p, i) => (
+              <img
+                key={i}
+                src={p.photo_url}
+                alt={p.caption || `Photo ${i + 2}`}
+                className="w-full aspect-square object-cover rounded-xl border border-amber-200/30"
+              />
+            ))}
           </div>
         )}
 
