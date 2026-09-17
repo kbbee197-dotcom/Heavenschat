@@ -14,6 +14,8 @@ export default function MemorialPage() {
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [showStore, setShowStore] = useState(false);
+  const [showGallery, setShowGallery] = useState(false);
+  const [giverName, setGiverName] = useState("");
   const [showTributeForm, setShowTributeForm] = useState(false);
   const [candleCount, setCandleCount] = useState(0);
   const [lighting, setLighting] = useState(false);
@@ -127,10 +129,18 @@ export default function MemorialPage() {
       description: `Lit a candle for ${memorial.full_name}`,
     });
 
+    const displayName = giverName.trim() || userData.user.email;
+
     await supabase.from("candles").insert({
       memorial_id: params.id,
       lit_by: userData.user.id,
-      lit_by_name: userData.user.email,
+      lit_by_name: displayName,
+    });
+
+    await supabase.from("tributes").insert({
+      memorial_id: params.id,
+      author_name: displayName,
+      message: "🕯️ Lit a candle",
     });
 
     setCandleCount((c) => c + 1);
@@ -181,10 +191,18 @@ export default function MemorialPage() {
       description: `Sent flowers for ${memorial.full_name}`,
     });
 
+    const displayName = giverName.trim() || userData.user.email;
+
     await supabase.from("flowers").insert({
       memorial_id: params.id,
       sent_by: userData.user.id,
-      sent_by_name: userData.user.email,
+      sent_by_name: displayName,
+    });
+
+    await supabase.from("tributes").insert({
+      memorial_id: params.id,
+      author_name: displayName,
+      message: "🌸 Sent flowers",
     });
 
     setFlowerCount((c) => c + 1);
@@ -261,6 +279,53 @@ export default function MemorialPage() {
         🎁
       </button>
 
+      <button
+        onClick={() => setShowGallery(true)}
+        className="fixed top-28 right-4 z-[90] w-9 h-9 rounded-full bg-black/30 backdrop-blur-md border border-amber-200/30 flex items-center justify-center text-lg hover:bg-black/40 transition"
+        aria-label="Open photo gallery"
+      >
+        🖼️
+      </button>
+
+      {showGallery && (
+        <div
+          className="fixed inset-0 z-[95] bg-black/80 backdrop-blur-sm flex items-center justify-center px-6"
+          onClick={() => setShowGallery(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-sm bg-black/70 backdrop-blur-md border border-amber-200/30 rounded-2xl p-6 max-h-[80vh] overflow-y-auto"
+          >
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-white font-serif text-lg">Photo Gallery</h3>
+              <button
+                onClick={() => setShowGallery(false)}
+                className="text-white/60 text-xl leading-none"
+              >
+                ×
+              </button>
+            </div>
+
+            {photos.length === 0 ? (
+              <p className="text-amber-50/60 text-sm text-center">
+                No photos yet.
+              </p>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                {photos.map((p, i) => (
+                  <img
+                    key={i}
+                    src={p.photo_url}
+                    alt={p.caption || `Photo ${i + 1}`}
+                    className="w-full aspect-square object-cover rounded-xl border border-amber-200/30"
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {showStore && (
         <div
           className="fixed inset-0 z-[95] bg-black/60 backdrop-blur-sm flex items-center justify-center px-6"
@@ -278,6 +343,16 @@ export default function MemorialPage() {
               >
                 ×
               </button>
+            </div>
+
+            <div className="mb-4">
+              <input
+                type="text"
+                value={giverName}
+                onChange={(e) => setGiverName(e.target.value)}
+                placeholder="Your name (for the tribute wall)"
+                className="w-full bg-white/10 border border-amber-200/30 rounded-xl px-4 py-2 text-sm text-white placeholder-white/40 focus:outline-none focus:border-amber-300/60"
+              />
             </div>
 
             <div className="flex items-center justify-between bg-white/10 rounded-xl px-4 py-3 mb-3">
@@ -363,18 +438,6 @@ export default function MemorialPage() {
           </div>
         )}
 
-        {photos.length > 1 && (
-          <div className="w-full grid grid-cols-3 gap-2 mb-8">
-            {photos.slice(1).map((p, i) => (
-              <img
-                key={i}
-                src={p.photo_url}
-                alt={p.caption || `Photo ${i + 2}`}
-                className="w-full aspect-square object-cover rounded-xl border border-amber-200/30"
-              />
-            ))}
-          </div>
-        )}
 
         <div className="w-full flex items-center justify-center gap-6 mb-8 text-white/80 text-sm">
           <span>🕯️ {candleCount}</span>
