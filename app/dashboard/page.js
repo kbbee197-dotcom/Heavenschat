@@ -98,7 +98,7 @@ function DashboardInner() {
             onClick={() => router.push("/settings")}
             className="text-amber-50/70 text-xs underline hover:text-amber-50"
           >
-            Profile & Tokens
+            Settings
           </button>
         </div>
 
