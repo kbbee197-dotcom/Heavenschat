@@ -58,13 +58,19 @@ export default function Home() {
         <video
           ref={gateVideoRef}
           src="/videos/gate-opening.mp4"
-          poster="/images/heavens-chat-logo.png"
           muted
           playsInline
           preload="auto"
           onEnded={handleGateEnd}
           className="absolute inset-0 w-full h-full object-cover"
         />
+        {stage === "gate" && showText && (
+          <img
+            src="/images/heavens-chat-logo.png"
+            alt="Heavens Chat"
+            className="absolute inset-0 w-full h-full object-contain bg-black z-20"
+          />
+        )}
         {stage === "gate" && showText && (
           <div className="absolute inset-0 z-30 pointer-events-none flex flex-col items-center justify-end pb-20 text-center px-6">
             <h1 className="text-white text-3xl font-serif mb-2 drop-shadow-lg">
