@@ -30,6 +30,7 @@ export default function Home() {
 
 
   const startOpening = () => {
+    if (userStartedRef.current) return;
     setShowText(false);
     userStartedRef.current = true;
     if (gateVideoRef.current) {
