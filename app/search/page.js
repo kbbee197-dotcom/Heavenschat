@@ -4,8 +4,15 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 
+const MONTHS = ["01","02","03","04","05","06","07","08","09","10","11","12"];
+const MONTH_LABELS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const DAYS = Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, "0"));
+const YEARS = Array.from({ length: 130 }, (_, i) => 2026 - i);
+
 export default function Search() {
   const [name, setName] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
   const [dateBorn, setDateBorn] = useState("");
   const [datePassed, setDatePassed] = useState("");
   const [results, setResults] = useState([]);
@@ -26,6 +33,25 @@ export default function Search() {
     checkAuth();
   }, [router]);
 
+  const updateDatePart = (which, part, value) => {
+    const current = which === "born" ? dateBorn : datePassed;
+    const setter = which === "born" ? setDateBorn : setDatePassed;
+    const [y, m, d] = current ? current.split("-") : ["", "", ""];
+    const parts = { y, m, d, [part]: value };
+    if (parts.y && parts.m && parts.d) {
+      setter(`${parts.y}-${parts.m}-${parts.d}`);
+    } else {
+      setter("");
+    }
+  };
+
+  const getDatePart = (which, part) => {
+    const current = which === "born" ? dateBorn : datePassed;
+    if (!current) return "";
+    const [y, m, d] = current.split("-");
+    return { y, m, d }[part];
+  };
+
   const handleSearch = async (e) => {
     e.preventDefault();
     setSearching(true);
@@ -39,6 +65,12 @@ export default function Search() {
     if (name.trim()) {
       query = query.or(`full_name.ilike.%${name.trim()}%,nicknames.ilike.%${name.trim()}%`);
     }
+    if (city.trim()) {
+      query = query.ilike("location_city", `%${city.trim()}%`);
+    }
+    if (state.trim()) {
+      query = query.ilike("location_state", `%${state.trim()}%`);
+    }
     if (dateBorn) {
       query = query.eq("date_born", dateBorn);
     }
@@ -51,6 +83,44 @@ export default function Search() {
     setResults(error ? [] : data || []);
     setSearching(false);
   };
+
+  const DateDropdowns = ({ which, label }) => (
+    <div className="mb-4">
+      <label className="block text-sm text-amber-50/90 mb-1">{label}</label>
+      <div className="flex gap-2">
+        <select
+          value={getDatePart(which, "m")}
+          onChange={(e) => updateDatePart(which, "m", e.target.value)}
+          className="flex-1 px-2 py-2 rounded-lg bg-white/90 text-gray-900 border border-amber-200/50 text-sm"
+        >
+          <option value="">Month</option>
+          {MONTHS.map((m, i) => (
+            <option key={m} value={m}>{MONTH_LABELS[i]}</option>
+          ))}
+        </select>
+        <select
+          value={getDatePart(which, "d")}
+          onChange={(e) => updateDatePart(which, "d", e.target.value)}
+          className="w-20 px-2 py-2 rounded-lg bg-white/90 text-gray-900 border border-amber-200/50 text-sm"
+        >
+          <option value="">Day</option>
+          {DAYS.map((d) => (
+            <option key={d} value={d}>{d}</option>
+          ))}
+        </select>
+        <select
+          value={getDatePart(which, "y")}
+          onChange={(e) => updateDatePart(which, "y", e.target.value)}
+          className="w-24 px-2 py-2 rounded-lg bg-white/90 text-gray-900 border border-amber-200/50 text-sm"
+        >
+          <option value="">Year</option>
+          {YEARS.map((y) => (
+            <option key={y} value={y}>{y}</option>
+          ))}
+        </select>
+      </div>
+    </div>
+  );
 
   if (checkingAuth) {
     return (
@@ -85,7 +155,7 @@ export default function Search() {
           Find a Memorial
         </h1>
         <p className="text-amber-50/70 text-sm text-center mb-6">
-          Search by name, birth date, or date passed.
+          Search by name, location, or dates.
         </p>
 
         <form onSubmit={handleSearch} className="mb-6">
@@ -100,28 +170,27 @@ export default function Search() {
 
           <div className="flex gap-3 mb-4">
             <div className="flex-1">
-              <label className="block text-sm text-amber-50/90 mb-1">
-                Date of Birth
-              </label>
+              <label className="block text-sm text-amber-50/90 mb-1">City</label>
               <input
-                type="date"
-                value={dateBorn}
-                onChange={(e) => setDateBorn(e.target.value)}
+                type="text"
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
                 className="w-full px-3 py-2 rounded-lg bg-white/90 text-gray-900 border border-amber-200/50 text-sm"
               />
             </div>
             <div className="flex-1">
-              <label className="block text-sm text-amber-50/90 mb-1">
-                Date Passed
-              </label>
+              <label className="block text-sm text-amber-50/90 mb-1">State</label>
               <input
-                type="date"
-                value={datePassed}
-                onChange={(e) => setDatePassed(e.target.value)}
+                type="text"
+                value={state}
+                onChange={(e) => setState(e.target.value)}
                 className="w-full px-3 py-2 rounded-lg bg-white/90 text-gray-900 border border-amber-200/50 text-sm"
               />
             </div>
           </div>
+
+          <DateDropdowns which="born" label="Date of Birth" />
+          <DateDropdowns which="passed" label="Date Passed" />
 
           <button
             type="submit"
