@@ -49,8 +49,16 @@ export default function Settings() {
     );
   }
 
+  const menuItems = [
+    { label: "Account", href: "/settings/account", icon: "👤" },
+    { label: "My Memorials", href: "/settings/memorials", icon: "🕊️" },
+    { label: "Billing & Tokens", href: "/settings/billing", icon: "💰" },
+    { label: "Notifications", href: "/settings/notifications", icon: "🔔" },
+    { label: "Sound", href: "/settings/sound", icon: "🔊" },
+  ];
+
   return (
-    <main className="relative min-h-screen w-full overflow-hidden bg-black flex items-center justify-center px-6">
+    <main className="relative min-h-screen w-full overflow-hidden bg-black flex items-center justify-center px-6 py-16">
       <video
         src="/videos/ambient-clouds.mp4"
         autoPlay
@@ -64,7 +72,7 @@ export default function Settings() {
 
       <div className="relative z-10 w-full max-w-sm bg-white/10 backdrop-blur-md border border-amber-200/30 rounded-2xl shadow-lg p-6">
         <h1 className="text-2xl font-serif text-center mb-6 text-white">
-          Your Profile
+          Settings
         </h1>
 
         <div className="mb-4">
@@ -78,11 +86,27 @@ export default function Settings() {
             <p className="text-amber-200 text-2xl font-serif">{tokenBalance}</p>
           </div>
           <button
-            onClick={() => router.push("/tokens")}
+            onClick={() => router.push("/settings/billing")}
             className="px-4 py-2 rounded-full text-xs font-medium bg-amber-500/80 text-white hover:bg-amber-500 transition"
           >
             Buy Tokens
           </button>
+        </div>
+
+        <div className="mb-6 space-y-2">
+          {menuItems.map((item) => (
+            <button
+              key={item.href}
+              onClick={() => router.push(item.href)}
+              className="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-white/5 border border-amber-200/20 hover:bg-white/10 transition text-left"
+            >
+              <span className="flex items-center gap-3 text-white text-sm">
+                <span>{item.icon}</span>
+                {item.label}
+              </span>
+              <span className="text-white/40 text-sm">›</span>
+            </button>
+          ))}
         </div>
 
         <button
