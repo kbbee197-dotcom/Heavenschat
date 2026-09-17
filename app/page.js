@@ -58,6 +58,7 @@ export default function Home() {
         <video
           ref={gateVideoRef}
           src="/videos/gate-opening.mp4"
+          poster="/images/heavens-chat-logo.png"
           muted
           playsInline
           preload="auto"
