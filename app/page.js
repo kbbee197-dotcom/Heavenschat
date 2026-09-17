@@ -96,7 +96,7 @@ export default function Home() {
           muted
           playsInline
           preload="metadata"
-          className="absolute inset-0 w-full h-full object-cover object-center"
+          className="absolute inset-0 w-full h-full object-cover"
         />
         <Particles count={16} />
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/10 z-20" />
