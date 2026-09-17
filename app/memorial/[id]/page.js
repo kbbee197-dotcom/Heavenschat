@@ -23,9 +23,13 @@ export default function MemorialPage() {
   const [flowerCount, setFlowerCount] = useState(0);
   const [sending, setSending] = useState(false);
   const [flowerMessage, setFlowerMessage] = useState("");
+  const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
     const loadMemorial = async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      setCurrentUser(userData?.user || null);
+
       const { data: memorialData } = await supabase
         .from("memorials")
         .select("*")
@@ -212,14 +216,18 @@ export default function MemorialPage() {
 
   const handleAddTribute = async (e) => {
     e.preventDefault();
-    if (!authorName.trim() || !message.trim()) return;
+    if (!currentUser) return;
+    if (!message.trim()) return;
     setSubmitting(true);
+
+    const displayName = authorName.trim() || currentUser.email;
 
     const { data, error } = await supabase
       .from("tributes")
       .insert({
         memorial_id: params.id,
-        author_name: authorName,
+        author_id: currentUser.id,
+        author_name: displayName,
         message: message,
       })
       .select()
@@ -449,32 +457,46 @@ export default function MemorialPage() {
         </button>
 
         {showTributeForm && (
-          <form
-            onSubmit={handleAddTribute}
-            className="w-full bg-black/30 backdrop-blur-md backdrop-blur-sm border border-amber-200/30 rounded-xl p-4 mb-6 shadow-sm"
-          >
-            <input
-              type="text"
-              placeholder="Your name"
-              value={authorName}
-              onChange={(e) => setAuthorName(e.target.value)}
-              className="w-full px-3 py-2 mb-2 rounded-lg border border-amber-200/30 text-sm text-white"
-            />
-            <textarea
-              placeholder="Leave a message..."
-              rows={3}
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              className="w-full px-3 py-2 mb-2 rounded-lg border border-amber-200/30 text-sm text-white resize-none"
-            />
-            <button
-              type="submit"
-              disabled={submitting}
-              className="w-full bg-amber-600 hover:bg-amber-700 text-white py-2 rounded-lg text-sm font-medium transition disabled:opacity-50"
+          currentUser ? (
+            <form
+              onSubmit={handleAddTribute}
+              className="w-full bg-black/30 backdrop-blur-md backdrop-blur-sm border border-amber-200/30 rounded-xl p-4 mb-6 shadow-sm"
             >
-              {submitting ? "Posting..." : "Leave a Tribute"}
-            </button>
-          </form>
+              <input
+                type="text"
+                placeholder="Your name (optional)"
+                value={authorName}
+                onChange={(e) => setAuthorName(e.target.value)}
+                className="w-full px-3 py-2 mb-2 rounded-lg border border-amber-200/30 text-sm text-white"
+              />
+              <textarea
+                placeholder="Leave a message..."
+                rows={3}
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                className="w-full px-3 py-2 mb-2 rounded-lg border border-amber-200/30 text-sm text-white resize-none"
+              />
+              <button
+                type="submit"
+                disabled={submitting}
+                className="w-full bg-amber-600 hover:bg-amber-700 text-white py-2 rounded-lg text-sm font-medium transition disabled:opacity-50"
+              >
+                {submitting ? "Posting..." : "Leave a Tribute"}
+              </button>
+            </form>
+          ) : (
+            <div className="w-full bg-black/30 backdrop-blur-md backdrop-blur-sm border border-amber-200/30 rounded-xl p-4 mb-6 shadow-sm text-center">
+              <p className="text-white/80 text-sm mb-3">
+                Please log in to leave a tribute.
+              </p>
+              <a
+                href="/login"
+                className="inline-block px-6 py-2 rounded-full text-sm text-amber-50 bg-amber-600 hover:bg-amber-700 transition"
+              >
+                Log In
+              </a>
+            </div>
+          )
         )}
 
         <div className="w-full space-y-3">
