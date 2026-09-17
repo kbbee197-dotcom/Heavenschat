@@ -438,12 +438,6 @@ export default function MemorialPage() {
           </div>
         )}
 
-
-        <div className="w-full flex items-center justify-center gap-6 mb-8 text-white/80 text-sm">
-          <span>🕯️ {candleCount}</span>
-          <span>🌸 {flowerCount}</span>
-        </div>
-
         <button
           onClick={() => setShowTributeForm(!showTributeForm)}
           className="w-full flex items-center justify-between mb-3"
