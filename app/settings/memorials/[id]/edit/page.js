@@ -114,6 +114,13 @@ export default function EditMemorial() {
           Edit Memorial
         </h1>
 
+        <button
+          onClick={() => router.push(`/settings/memorials/${params.id}/voice`)}
+          className="w-full mb-6 px-4 py-3 rounded-xl bg-amber-500/10 border border-amber-300/30 text-amber-200 text-sm hover:bg-amber-500/20 transition"
+        >
+          🎙️ Set Up Voice
+        </button>
+
         {error && (
           <p className="text-red-300 text-sm mb-4 text-center">{error}</p>
         )}
