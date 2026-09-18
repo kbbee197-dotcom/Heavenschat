@@ -13,8 +13,8 @@ const EVENT_LABELS = {
 export async function POST(request) {
   const body = await request.json();
 
-  // Supabase Database Webhook payload shape:
-  // { type: "INSERT", table: "tributes"|"candles"|"flowers", record: {...} }
+  // Called directly from our own app code after an insert.
+  // Expected shape: { table: "tributes"|"candles"|"flowers", record: {...} }
   const { table, record } = body;
 
   if (!table || !record || !EVENT_LABELS[table]) {

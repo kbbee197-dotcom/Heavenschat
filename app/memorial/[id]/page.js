@@ -135,17 +135,34 @@ export default function MemorialPage() {
 
     const displayName = giverName.trim() || userData.user.email;
 
-    await supabase.from("candles").insert({
-      memorial_id: params.id,
-      lit_by: userData.user.id,
-      lit_by_name: displayName,
-    });
+    const { data: candleData } = await supabase
+      .from("candles")
+      .insert({
+        memorial_id: params.id,
+        lit_by: userData.user.id,
+        lit_by_name: displayName,
+      })
+      .select()
+      .single();
 
-    await supabase.from("tributes").insert({
-      memorial_id: params.id,
-      author_name: displayName,
-      message: "🕯️ Lit a candle",
-    });
+    const { data: candleTribute } = await supabase
+      .from("tributes")
+      .insert({
+        memorial_id: params.id,
+        author_id: userData.user.id,
+        author_name: displayName,
+        message: "🕯️ Lit a candle",
+      })
+      .select()
+      .single();
+
+    if (candleTribute) {
+      fetch("/api/notify-memorial-owner", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ table: "tributes", record: candleTribute }),
+      }).catch(() => {});
+    }
 
     setCandleCount((c) => c + 1);
     setCandleMessage("A candle has been lit. 🕯️");
@@ -197,17 +214,34 @@ export default function MemorialPage() {
 
     const displayName = giverName.trim() || userData.user.email;
 
-    await supabase.from("flowers").insert({
-      memorial_id: params.id,
-      sent_by: userData.user.id,
-      sent_by_name: displayName,
-    });
+    const { data: flowerData } = await supabase
+      .from("flowers")
+      .insert({
+        memorial_id: params.id,
+        sent_by: userData.user.id,
+        sent_by_name: displayName,
+      })
+      .select()
+      .single();
 
-    await supabase.from("tributes").insert({
-      memorial_id: params.id,
-      author_name: displayName,
-      message: "🌸 Sent flowers",
-    });
+    const { data: flowerTribute } = await supabase
+      .from("tributes")
+      .insert({
+        memorial_id: params.id,
+        author_id: userData.user.id,
+        author_name: displayName,
+        message: "🌸 Sent flowers",
+      })
+      .select()
+      .single();
+
+    if (flowerTribute) {
+      fetch("/api/notify-memorial-owner", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ table: "tributes", record: flowerTribute }),
+      }).catch(() => {});
+    }
 
     setFlowerCount((c) => c + 1);
     setFlowerMessage("Flowers have been sent. 🌸");
@@ -236,6 +270,12 @@ export default function MemorialPage() {
     if (error) {
       alert("Tribute submit failed: " + error.message);
     } else {
+      fetch("/api/notify-memorial-owner", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ table: "tributes", record: data }),
+      }).catch(() => {});
+
       setTributes([data, ...tributes]);
       setAuthorName("");
       setMessage("");
