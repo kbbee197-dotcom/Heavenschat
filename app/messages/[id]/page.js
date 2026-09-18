@@ -34,13 +34,11 @@ export default function MessageThread() {
         const otherId =
           convo.user_one === userData.user.id ? convo.user_two : convo.user_one;
 
-        const { data: profile } = await supabase
-          .from("public_profiles")
-          .select("email")
-          .eq("id", otherId)
-          .single();
+        const { data: profiles } = await supabase.rpc("get_profile_emails", {
+          user_ids: [otherId],
+        });
 
-        setOtherEmail(profile?.email || "Unknown");
+        setOtherEmail(profiles?.[0]?.email || "Unknown");
       }
 
       const { data: msgs } = await supabase

@@ -34,10 +34,9 @@ export default function Inbox() {
         c.user_one === userId ? c.user_two : c.user_one
       );
 
-      const { data: profiles } = await supabase
-        .from("public_profiles")
-        .select("id, email")
-        .in("id", otherIds);
+      const { data: profiles } = await supabase.rpc("get_profile_emails", {
+        user_ids: otherIds,
+      });
 
       const emailMap = {};
       (profiles || []).forEach((p) => {
