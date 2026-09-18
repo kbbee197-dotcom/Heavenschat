@@ -119,9 +119,16 @@ function DashboardInner() {
 
           <button
             onClick={() => router.push("/search")}
-            className="w-full px-6 py-3 rounded-full font-serif text-sm tracking-wide text-amber-50 backdrop-blur-md bg-white/10 border border-amber-200/50 hover:bg-white/20 transition-all duration-300"
+            className="w-full px-6 py-3 rounded-full font-serif text-sm tracking-wide text-amber-50 backdrop-blur-md bg-white/10 border border-amber-200/50 hover:bg-white/20 transition-all duration-300 mb-3"
           >
             Find a Memorial
+          </button>
+
+          <button
+            onClick={() => router.push("/messages")}
+            className="w-full px-6 py-3 rounded-full font-serif text-sm tracking-wide text-amber-50 backdrop-blur-md bg-white/10 border border-amber-200/50 hover:bg-white/20 transition-all duration-300"
+          >
+            Messages
           </button>
         </div>
 

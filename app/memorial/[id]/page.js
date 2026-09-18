@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
+import { getOrCreateConversation } from "@/lib/conversations";
 
 export default function MemorialPage() {
   const params = useParams();
+  const router = useRouter();
   const [memorial, setMemorial] = useState(null);
   const [photos, setPhotos] = useState([]);
   const [tributes, setTributes] = useState([]);
@@ -283,6 +285,19 @@ export default function MemorialPage() {
     setSubmitting(false);
   };
 
+  const handleMessageAuthor = async (authorId) => {
+    if (!currentUser) {
+      router.push("/login");
+      return;
+    }
+    if (authorId === currentUser.id) return;
+
+    const conversationId = await getOrCreateConversation(currentUser.id, authorId);
+    if (conversationId) {
+      router.push(`/messages/${conversationId}`);
+    }
+  };
+
   if (loading) {
     return (
       <main className="min-h-screen bg-black flex items-center justify-center">
@@ -318,6 +333,14 @@ export default function MemorialPage() {
         className="fixed inset-0 w-full h-full object-cover"
       />
       <div className="fixed inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/70" />
+
+      <button
+        onClick={() => router.push(currentUser ? "/settings" : "/login")}
+        className="fixed top-4 left-4 z-[90] w-9 h-9 rounded-full bg-black/30 backdrop-blur-md border border-amber-200/30 flex items-center justify-center text-lg hover:bg-black/40 transition"
+        aria-label="Settings"
+      >
+        ⚙️
+      </button>
 
       <button
         onClick={() => setShowStore(true)}
@@ -550,9 +573,19 @@ export default function MemorialPage() {
               key={t.id}
               className="bg-black/30 backdrop-blur-md backdrop-blur-sm border border-amber-200/30 rounded-xl px-4 py-3 shadow-sm"
             >
-              <p className="text-amber-700 text-xs font-medium mb-1">
-                {t.author_name}
-              </p>
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-amber-700 text-xs font-medium">
+                  {t.author_name}
+                </p>
+                {t.author_id && currentUser && t.author_id !== currentUser.id && (
+                  <button
+                    onClick={() => handleMessageAuthor(t.author_id)}
+                    className="text-amber-200/70 text-xs underline hover:text-amber-200"
+                  >
+                    Message
+                  </button>
+                )}
+              </div>
               <p className="text-white/90 text-sm">{t.message}</p>
             </div>
           ))}

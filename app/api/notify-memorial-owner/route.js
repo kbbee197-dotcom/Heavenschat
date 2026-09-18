@@ -14,8 +14,12 @@ export async function POST(request) {
   const body = await request.json();
 
   // Called directly from our own app code after an insert.
-  // Expected shape: { table: "tributes"|"candles"|"flowers", record: {...} }
+  // Expected shape: { table: "tributes"|"candles"|"flowers"|"messages", record: {...} }
   const { table, record } = body;
+
+  if (table === "messages") {
+    return handleDirectMessage(record);
+  }
 
   if (!table || !record || !EVENT_LABELS[table]) {
     return NextResponse.json({ error: "Unsupported table" }, { status: 400 });
@@ -69,6 +73,48 @@ export async function POST(request) {
         ${messageBody ? `<p style="padding:12px;background:#f5f0e6;border-radius:8px;">"${messageBody}"</p>` : ""}
         <p><a href="https://heavenschat.vercel.app/memorial/${memorialId}">View the memorial</a></p>
       `,
+    });
+  } catch (err) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ success: true });
+}
+
+async function handleDirectMessage(record) {
+  const { conversation_id, sender_id, body: messageBody } = record;
+
+  const { data: convo, error: convoError } = await supabaseAdmin
+    .from("conversations")
+    .select("user_one, user_two")
+    .eq("id", conversation_id)
+    .single();
+
+  if (convoError || !convo) {
+    return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
+  }
+
+  const recipientId = convo.user_one === sender_id ? convo.user_two : convo.user_one;
+
+  const { data: recipientAuth } = await supabaseAdmin.auth.admin.getUserById(
+    recipientId
+  );
+
+  if (!recipientAuth?.user?.email) {
+    return NextResponse.json({ skipped: true });
+  }
+
+  const { data: senderAuth } = await supabaseAdmin.auth.admin.getUserById(
+    sender_id
+  );
+  const senderEmail = senderAuth?.user?.email || "Someone";
+
+  try {
+    await resend.emails.send({
+      from: "Heavens Chat <onboarding@resend.dev>",
+      to: recipientAuth.user.email,
+      subject: `New message from ${senderEmail} on Heavens Chat`,
+      html: `<p><strong>${senderEmail}</strong> sent you a message:</p><p style="padding:12px;background:#f5f0e6;border-radius:8px;">"${messageBody}"</p><p><a href="https://heavenschat.vercel.app/messages/${conversation_id}">Reply on Heavens Chat</a></p>`,
     });
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
