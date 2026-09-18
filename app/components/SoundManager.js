@@ -8,20 +8,29 @@ export default function SoundManager() {
   const [soundOn, setSoundOn] = useState(true);
 
   useEffect(() => {
+    const stored = localStorage.getItem("heavenschat_sound_on");
+    if (stored !== null) {
+      setSoundOn(stored === "true");
+    }
+  }, []);
+
+  useEffect(() => {
     const tryStart = () => {
       if (!startedRef.current && audioRef.current) {
         startedRef.current = true;
         audioRef.current.volume = 0.5;
+        audioRef.current.muted = !soundOn;
         audioRef.current.play().catch(() => {});
       }
     };
     document.addEventListener("click", tryStart, { once: true });
     return () => document.removeEventListener("click", tryStart);
-  }, []);
+  }, [soundOn]);
 
   const toggleSound = () => {
     const newState = !soundOn;
     setSoundOn(newState);
+    localStorage.setItem("heavenschat_sound_on", String(newState));
     if (audioRef.current) {
       audioRef.current.muted = !newState;
     }
