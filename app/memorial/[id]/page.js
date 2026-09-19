@@ -340,7 +340,9 @@ export default function MemorialPage() {
   }
 
   const bgVideo =
-    customBackground?.media_url ||
+    (customBackground?.media_url && customBackground.media_url !== "DEFAULT"
+      ? customBackground.media_url
+      : null) ||
     (memorial.type === "pet"
       ? "/videos/pets-memorial.mp4"
       : "/videos/loved-ones-memorial.mp4");
