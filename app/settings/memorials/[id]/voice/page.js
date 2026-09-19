@@ -12,6 +12,11 @@ export default function VoiceSettings() {
   const params = useParams();
   const [memorial, setMemorial] = useState(null);
   const [existingVoice, setExistingVoice] = useState(null);
+  const [clips, setClips] = useState([]);
+  const [clipFile, setClipFile] = useState(null);
+  const [clipCaption, setClipCaption] = useState("");
+  const [uploadingClip, setUploadingClip] = useState(false);
+  const [clipError, setClipError] = useState("");
   const [file, setFile] = useState(null);
   const [consentName, setConsentName] = useState("");
   const [agreed, setAgreed] = useState(false);
@@ -49,6 +54,14 @@ export default function VoiceSettings() {
         .maybeSingle();
 
       setExistingVoice(voiceData || null);
+
+      const { data: clipsData } = await supabase
+        .from("voice_clips")
+        .select("*")
+        .eq("memorial_id", params.id)
+        .order("created_at", { ascending: false });
+
+      setClips(clipsData || []);
       setLoading(false);
     };
     load();
@@ -124,6 +137,63 @@ export default function VoiceSettings() {
     });
   };
 
+  const handleClipUpload = async (e) => {
+    e.preventDefault();
+    setClipError("");
+
+    if (!clipFile) {
+      setClipError("Please select an audio file.");
+      return;
+    }
+
+    setUploadingClip(true);
+
+    const fileExt = clipFile.name.split(".").pop();
+    const fileName = `${params.id}-clip-${Date.now()}.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("memorial-voices")
+      .upload(fileName, clipFile);
+
+    if (uploadError) {
+      setClipError("Upload failed: " + uploadError.message);
+      setUploadingClip(false);
+      return;
+    }
+
+    const { data: urlData } = supabase.storage
+      .from("memorial-voices")
+      .getPublicUrl(fileName);
+
+    const { data, error: insertError } = await supabase
+      .from("voice_clips")
+      .insert({
+        memorial_id: params.id,
+        clip_url: urlData.publicUrl,
+        caption: clipCaption.trim() || null,
+      })
+      .select()
+      .single();
+
+    setUploadingClip(false);
+
+    if (insertError) {
+      setClipError(insertError.message);
+      return;
+    }
+
+    setClips((prev) => [data, ...prev]);
+    setClipFile(null);
+    setClipCaption("");
+  };
+
+  const handleDeleteClip = async (clipId) => {
+    const { error } = await supabase.from("voice_clips").delete().eq("id", clipId);
+    if (!error) {
+      setClips((prev) => prev.filter((c) => c.id !== clipId));
+    }
+  };
+
   if (loading) {
     return (
       <main className="min-h-screen bg-black flex items-center justify-center">
@@ -161,6 +231,74 @@ export default function VoiceSettings() {
             For {memorial.full_name}
           </p>
         )}
+
+        <div className="mb-8">
+          <p className="text-white text-sm mb-1">Voice Clips</p>
+          <p className="text-white/40 text-xs mb-3">
+            Upload real recordings (a voicemail, a hello, an "I love you") that
+            visitors can play on the memorial page.
+          </p>
+
+          {clipError && (
+            <p className="text-red-300 text-xs mb-3">{clipError}</p>
+          )}
+
+          {clips.length > 0 && (
+            <div className="space-y-2 mb-4">
+              {clips.map((clip) => (
+                <div
+                  key={clip.id}
+                  className="bg-white/5 border border-amber-200/20 rounded-xl p-3"
+                >
+                  <audio controls src={clip.clip_url} className="w-full mb-2" />
+                  <div className="flex items-center justify-between">
+                    <p className="text-white/60 text-xs">
+                      {clip.caption || "Untitled clip"}
+                    </p>
+                    <button
+                      onClick={() => handleDeleteClip(clip.id)}
+                      className="text-red-300/70 text-xs hover:text-red-300"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <form onSubmit={handleClipUpload}>
+            <input
+              type="file"
+              accept="audio/*"
+              onChange={(e) => setClipFile(e.target.files[0])}
+              className="w-full text-sm text-white mb-2"
+            />
+            <input
+              type="text"
+              value={clipCaption}
+              onChange={(e) => setClipCaption(e.target.value)}
+              placeholder="Caption (optional)"
+              className="w-full px-3 py-2 mb-3 rounded-lg bg-white/90 text-gray-900 border border-amber-200/50 text-sm"
+            />
+            <button
+              type="submit"
+              disabled={uploadingClip}
+              className="w-full px-4 py-2 rounded-full text-sm text-amber-50 bg-white/10 border border-amber-200/50 hover:bg-white/20 transition disabled:opacity-40"
+            >
+              {uploadingClip ? "Uploading..." : "Add Clip"}
+            </button>
+          </form>
+        </div>
+
+        <div className="border-t border-amber-200/20 pt-6 mb-2">
+          <p className="text-white text-sm mb-1">AI Voice (Coming Soon)</p>
+          <p className="text-white/40 text-xs mb-4">
+            Let visitors have a conversation and hear responses in{" "}
+            {memorial?.full_name}'s voice. This feature is temporarily
+            disabled while we finalize setup.
+          </p>
+        </div>
 
         {error && (
           <p className="text-red-300 text-sm mb-4 text-center">{error}</p>

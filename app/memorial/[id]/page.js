@@ -17,6 +17,8 @@ export default function MemorialPage() {
   const [submitting, setSubmitting] = useState(false);
   const [showStore, setShowStore] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
+  const [showVoiceClips, setShowVoiceClips] = useState(false);
+  const [voiceClips, setVoiceClips] = useState([]);
   const [giverName, setGiverName] = useState("");
   const [showTributeForm, setShowTributeForm] = useState(false);
   const [candleCount, setCandleCount] = useState(0);
@@ -47,6 +49,14 @@ export default function MemorialPage() {
         .order("created_at", { ascending: true });
 
       setPhotos(photosData || []);
+
+      const { data: clipsData } = await supabase
+        .from("voice_clips")
+        .select("*")
+        .eq("memorial_id", params.id)
+        .order("created_at", { ascending: true });
+
+      setVoiceClips(clipsData || []);
 
       const { data: tributeData } = await supabase
         .from("tributes")
@@ -357,6 +367,54 @@ export default function MemorialPage() {
       >
         🖼️
       </button>
+
+      {voiceClips.length > 0 && (
+        <button
+          onClick={() => setShowVoiceClips(true)}
+          className="fixed top-40 right-4 z-[90] w-9 h-9 rounded-full bg-black/30 backdrop-blur-md border border-amber-200/30 flex items-center justify-center text-lg hover:bg-black/40 transition"
+          aria-label="Hear from them"
+        >
+          🎙️
+        </button>
+      )}
+
+      {showVoiceClips && (
+        <div
+          className="fixed inset-0 z-[95] bg-black/80 backdrop-blur-sm flex items-center justify-center px-6"
+          onClick={() => setShowVoiceClips(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-sm bg-black/70 backdrop-blur-md border border-amber-200/30 rounded-2xl p-6 max-h-[80vh] overflow-y-auto"
+          >
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-white font-serif text-lg">
+                Hear from {memorial?.full_name}
+              </h3>
+              <button
+                onClick={() => setShowVoiceClips(false)}
+                className="text-white/60 text-xl leading-none"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {voiceClips.map((clip) => (
+                <div
+                  key={clip.id}
+                  className="bg-white/5 border border-amber-200/20 rounded-xl p-3"
+                >
+                  <audio controls src={clip.clip_url} className="w-full mb-1" />
+                  {clip.caption && (
+                    <p className="text-white/50 text-xs">{clip.caption}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {showGallery && (
         <div
