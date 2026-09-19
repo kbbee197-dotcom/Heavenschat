@@ -39,10 +39,12 @@ export default function MemorialPage() {
       bgAudio.muted = wasGlobalMuted;
       bgAudio.play().catch(() => {});
       bgAudioRef.current = bgAudio;
+      window.__activeBgAudio = bgAudio;
 
       return () => {
         bgAudio.pause();
         bgAudioRef.current = null;
+        window.__activeBgAudio = null;
         if (globalAudio && !wasGlobalMuted) {
           globalAudio.play().catch(() => {});
         }

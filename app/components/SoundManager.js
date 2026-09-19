@@ -34,6 +34,9 @@ export default function SoundManager() {
     if (audioRef.current) {
       audioRef.current.muted = !newState;
     }
+    if (typeof window !== "undefined" && window.__activeBgAudio) {
+      window.__activeBgAudio.muted = !newState;
+    }
   };
 
   return (
