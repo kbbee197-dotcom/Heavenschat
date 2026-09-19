@@ -268,12 +268,15 @@ export default function VoiceSettings() {
           )}
 
           <form onSubmit={handleClipUpload}>
-            <input
-              type="file"
-              accept="audio/*"
-              onChange={(e) => setClipFile(e.target.files[0])}
-              className="w-full text-sm text-white mb-2"
-            />
+            <label className="flex items-center justify-center w-full px-4 py-3 mb-2 rounded-xl border border-dashed border-amber-200/50 text-amber-50/70 text-sm cursor-pointer hover:bg-white/10 transition">
+              {clipFile ? clipFile.name : "Tap to choose an audio file"}
+              <input
+                type="file"
+                accept="audio/*"
+                onChange={(e) => setClipFile(e.target.files[0])}
+                className="hidden"
+              />
+            </label>
             <input
               type="text"
               value={clipCaption}
@@ -326,12 +329,15 @@ export default function VoiceSettings() {
           <label className="block text-sm text-amber-50/90 mb-1">
             Audio Sample
           </label>
-          <input
-            type="file"
-            accept="audio/*"
-            onChange={(e) => setFile(e.target.files[0])}
-            className="w-full text-sm text-white mb-4"
-          />
+          <label className="flex items-center justify-center w-full px-4 py-3 mb-4 rounded-xl border border-dashed border-amber-200/50 text-amber-50/70 text-sm cursor-pointer hover:bg-white/10 transition">
+            {file ? file.name : "Tap to choose an audio file"}
+            <input
+              type="file"
+              accept="audio/*"
+              onChange={(e) => setFile(e.target.files[0])}
+              className="hidden"
+            />
+          </label>
 
           <div className="bg-black/30 border border-amber-200/20 rounded-xl p-4 mb-4">
             <p className="text-white/70 text-xs leading-relaxed mb-3">
