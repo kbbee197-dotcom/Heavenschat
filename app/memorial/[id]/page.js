@@ -23,7 +23,7 @@ export default function MemorialPage() {
   const bgAudioRef = useRef(null);
 
   useEffect(() => {
-    const audioUrl = customBackground?.audio_url;
+    const audioUrl = memorial?.custom_audio_url || customBackground?.audio_url;
     const globalAudio = document.getElementById("site-ambient-audio");
 
     if (audioUrl) {
@@ -50,7 +50,7 @@ export default function MemorialPage() {
         }
       };
     }
-  }, [customBackground]);
+  }, [customBackground, memorial?.custom_audio_url]);
   const [giverName, setGiverName] = useState("");
   const [showTributeForm, setShowTributeForm] = useState(false);
   const [candleCount, setCandleCount] = useState(0);
