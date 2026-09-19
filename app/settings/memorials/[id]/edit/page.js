@@ -116,9 +116,16 @@ export default function EditMemorial() {
 
         <button
           onClick={() => router.push(`/settings/memorials/${params.id}/voice`)}
-          className="w-full mb-6 px-4 py-3 rounded-xl bg-amber-500/10 border border-amber-300/30 text-amber-200 text-sm hover:bg-amber-500/20 transition"
+          className="w-full mb-3 px-4 py-3 rounded-xl bg-amber-500/10 border border-amber-300/30 text-amber-200 text-sm hover:bg-amber-500/20 transition"
         >
           🎙️ Set Up Voice
+        </button>
+
+        <button
+          onClick={() => router.push(`/settings/memorials/${params.id}/background`)}
+          className="w-full mb-6 px-4 py-3 rounded-xl bg-amber-500/10 border border-amber-300/30 text-amber-200 text-sm hover:bg-amber-500/20 transition"
+        >
+          🖼️ Change Background
         </button>
 
         {error && (

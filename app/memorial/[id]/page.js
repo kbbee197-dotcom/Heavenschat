@@ -19,6 +19,7 @@ export default function MemorialPage() {
   const [showGallery, setShowGallery] = useState(false);
   const [showVoiceClips, setShowVoiceClips] = useState(false);
   const [voiceClips, setVoiceClips] = useState([]);
+  const [customBackground, setCustomBackground] = useState(null);
   const [giverName, setGiverName] = useState("");
   const [showTributeForm, setShowTributeForm] = useState(false);
   const [candleCount, setCandleCount] = useState(0);
@@ -41,6 +42,18 @@ export default function MemorialPage() {
         .single();
 
       setMemorial(memorialData);
+
+      if (memorialData?.active_background_id) {
+        const { data: bgOption } = await supabase
+          .from("background_options")
+          .select("media_url, media_type")
+          .eq("id", memorialData.active_background_id)
+          .single();
+
+        if (bgOption) {
+          setCustomBackground(bgOption);
+        }
+      }
 
       const { data: photosData } = await supabase
         .from("memorial_photos")
@@ -327,9 +340,10 @@ export default function MemorialPage() {
   }
 
   const bgVideo =
-    memorial.type === "pet"
+    customBackground?.media_url ||
+    (memorial.type === "pet"
       ? "/videos/pets-memorial.mp4"
-      : "/videos/loved-ones-memorial.mp4";
+      : "/videos/loved-ones-memorial.mp4");
 
   return (
     <main className="relative min-h-screen w-full overflow-hidden bg-black">
