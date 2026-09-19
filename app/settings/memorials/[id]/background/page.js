@@ -324,14 +324,67 @@ export default function BackgroundSettings() {
             sound. One-time unlock, upload as many times as you like after.
           </p>
 
-          <a
-            href="https://pixabay.com/music/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block text-amber-200/80 text-xs underline hover:text-amber-200 mb-4"
-          >
-            Browse free music on Pixabay →
-          </a>
+          <div className="mb-4">
+            <p className="text-white/40 text-xs mb-2">
+              Need music? Royalty-free (safe to use anywhere):
+            </p>
+            <div className="flex flex-wrap gap-x-3 gap-y-1 mb-3">
+              <a
+                href="https://pixabay.com/music/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-amber-200/80 text-xs underline hover:text-amber-200"
+              >
+                Pixabay
+              </a>
+              <a
+                href="https://mixkit.co/free-sound-effects/music/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-amber-200/80 text-xs underline hover:text-amber-200"
+              >
+                Mixkit
+              </a>
+            </div>
+
+            <p className="text-white/40 text-xs mb-2">
+              Other sources (check the track's license or purchase before uploading):
+            </p>
+            <div className="flex flex-wrap gap-x-3 gap-y-1">
+              <a
+                href="https://soundcloud.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-amber-200/60 text-xs underline hover:text-amber-200"
+              >
+                SoundCloud
+              </a>
+              <a
+                href="https://audiomack.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-amber-200/60 text-xs underline hover:text-amber-200"
+              >
+                Audiomack
+              </a>
+              <a
+                href="https://bandcamp.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-amber-200/60 text-xs underline hover:text-amber-200"
+              >
+                Bandcamp
+              </a>
+              <a
+                href="https://www.trebel.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-amber-200/60 text-xs underline hover:text-amber-200"
+              >
+                Trebel
+              </a>
+            </div>
+          </div>
 
           {!memorial.custom_audio_unlocked ? (
             <button
