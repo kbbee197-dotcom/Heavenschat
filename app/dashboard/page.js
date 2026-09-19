@@ -16,6 +16,7 @@ function DashboardInner() {
   const [memorials, setMemorials] = useState([]);
   const [tokenBalance, setTokenBalance] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const hitLimit = searchParams.get("limit") === "free-plot-used";
@@ -40,11 +41,12 @@ function DashboardInner() {
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("token_balance, last_login_bonus")
+        .select("token_balance, last_login_bonus, is_admin")
         .eq("id", userData.user.id)
         .single();
 
       if (profile) {
+        setIsAdmin(profile.is_admin || false);
         const today = new Date().toISOString().split("T")[0];
         if (profile.last_login_bonus !== today) {
           const newBalance = (profile.token_balance || 0) + 5;
@@ -93,7 +95,15 @@ function DashboardInner() {
             </p>
           </div>
         )}
-        <div className="flex justify-end mb-3">
+        <div className="flex justify-end gap-4 mb-3">
+          {isAdmin && (
+            <button
+              onClick={() => router.push("/admin")}
+              className="text-amber-300 text-xs underline hover:text-amber-200"
+            >
+              Admin
+            </button>
+          )}
           <button
             onClick={() => router.push("/settings")}
             className="text-amber-50/70 text-xs underline hover:text-amber-50"
