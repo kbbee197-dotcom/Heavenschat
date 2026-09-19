@@ -57,7 +57,7 @@ export default function MemorialPage() {
 
       const { data: photosData } = await supabase
         .from("memorial_photos")
-        .select("photo_url, caption")
+        .select("id, photo_url, caption")
         .eq("memorial_id", params.id)
         .order("created_at", { ascending: true });
 
@@ -321,6 +321,27 @@ export default function MemorialPage() {
     }
   };
 
+  const handleFlag = async (contentType, contentId) => {
+    if (!currentUser) {
+      router.push("/login");
+      return;
+    }
+
+    const reason = window.prompt("Why are you flagging this? (optional)") || "";
+
+    const { error } = await supabase.from("content_flags").insert({
+      content_type: contentType,
+      content_id: contentId,
+      memorial_id: params.id,
+      reason: reason.trim() || null,
+      reported_by: currentUser.id,
+    });
+
+    if (!error) {
+      alert("Thanks — this has been reported for review.");
+    }
+  };
+
   if (loading) {
     return (
       <main className="min-h-screen bg-black flex items-center justify-center">
@@ -458,12 +479,19 @@ export default function MemorialPage() {
             ) : (
               <div className="grid grid-cols-2 gap-3">
                 {photos.map((p, i) => (
-                  <img
-                    key={i}
-                    src={p.photo_url}
-                    alt={p.caption || `Photo ${i + 1}`}
-                    className="w-full aspect-square object-cover rounded-xl border border-amber-200/30"
-                  />
+                  <div key={p.id || i} className="relative">
+                    <img
+                      src={p.photo_url}
+                      alt={p.caption || `Photo ${i + 1}`}
+                      className="w-full aspect-square object-cover rounded-xl border border-amber-200/30"
+                    />
+                    <button
+                      onClick={() => handleFlag("photo", p.id)}
+                      className="absolute bottom-1 right-1 text-[10px] text-white/70 bg-black/50 px-2 py-0.5 rounded-full hover:bg-black/70"
+                    >
+                      Flag
+                    </button>
+                  </div>
                 ))}
               </div>
             )}
@@ -651,14 +679,22 @@ export default function MemorialPage() {
                 <p className="text-amber-700 text-xs font-medium">
                   {t.author_name}
                 </p>
-                {t.author_id && currentUser && t.author_id !== currentUser.id && (
+                <div className="flex items-center gap-3">
+                  {t.author_id && currentUser && t.author_id !== currentUser.id && (
+                    <button
+                      onClick={() => handleMessageAuthor(t.author_id)}
+                      className="text-amber-200/70 text-xs underline hover:text-amber-200"
+                    >
+                      Message
+                    </button>
+                  )}
                   <button
-                    onClick={() => handleMessageAuthor(t.author_id)}
-                    className="text-amber-200/70 text-xs underline hover:text-amber-200"
+                    onClick={() => handleFlag("tribute", t.id)}
+                    className="text-white/30 text-xs underline hover:text-white/60"
                   >
-                    Message
+                    Flag
                   </button>
-                )}
+                </div>
               </div>
               <p className="text-white/90 text-sm">{t.message}</p>
             </div>
