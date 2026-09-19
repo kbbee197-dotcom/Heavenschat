@@ -65,19 +65,35 @@ export default function AdminFlags() {
   }, [router]);
 
   const callModerate = async (payload) => {
-    const { data: sessionData } = await supabase.auth.getSession();
-    const token = sessionData?.session?.access_token;
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
 
-    const res = await fetch("/api/admin-moderate", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(payload),
-    });
+      const res = await fetch("/api/admin-moderate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
 
-    return res.json();
+      const text = await res.text();
+      let result;
+      try {
+        result = JSON.parse(text);
+      } catch {
+        return { error: `Non-JSON response (status ${res.status}): ${text.slice(0, 200)}` };
+      }
+
+      if (!res.ok && !result.error) {
+        return { error: `Request failed with status ${res.status}` };
+      }
+
+      return result;
+    } catch (err) {
+      return { error: `Network error: ${err.message}` };
+    }
   };
 
   const handleDeleteContent = async (contentType, contentId) => {
