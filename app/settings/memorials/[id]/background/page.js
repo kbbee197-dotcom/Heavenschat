@@ -319,10 +319,19 @@ export default function BackgroundSettings() {
 
         <div className="border-t border-amber-200/20 pt-6 mt-6">
           <p className="text-white text-sm mb-1">Your Own Music</p>
-          <p className="text-white/40 text-xs mb-4">
+          <p className="text-white/40 text-xs mb-3">
             Upload your own audio to play instead of the background's default
             sound. One-time unlock, upload as many times as you like after.
           </p>
+
+          <a
+            href="https://pixabay.com/music/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block text-amber-200/80 text-xs underline hover:text-amber-200 mb-4"
+          >
+            Browse free music on Pixabay →
+          </a>
 
           {!memorial.custom_audio_unlocked ? (
             <button
