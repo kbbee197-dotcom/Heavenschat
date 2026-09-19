@@ -38,7 +38,7 @@ export default function SoundManager() {
 
   return (
     <>
-      <audio ref={audioRef} src="/audio/ambient-music.m4a" loop />
+      <audio id="site-ambient-audio" ref={audioRef} src="/audio/ambient-music.m4a" loop />
       <button
         onClick={toggleSound}
         className="fixed top-4 right-4 z-[100] w-9 h-9 rounded-full bg-black/30 backdrop-blur-md border border-amber-200/30 flex items-center justify-center transition-all duration-300 hover:bg-black/40"

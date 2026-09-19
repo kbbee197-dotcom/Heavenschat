@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { getOrCreateConversation } from "@/lib/conversations";
@@ -20,6 +20,35 @@ export default function MemorialPage() {
   const [showVoiceClips, setShowVoiceClips] = useState(false);
   const [voiceClips, setVoiceClips] = useState([]);
   const [customBackground, setCustomBackground] = useState(null);
+  const bgAudioRef = useRef(null);
+
+  useEffect(() => {
+    const audioUrl = customBackground?.audio_url;
+    const globalAudio = document.getElementById("site-ambient-audio");
+
+    if (audioUrl) {
+      const wasGlobalMuted = globalAudio ? globalAudio.muted : true;
+
+      if (globalAudio) {
+        globalAudio.pause();
+      }
+
+      const bgAudio = new Audio(audioUrl);
+      bgAudio.loop = true;
+      bgAudio.volume = 0.5;
+      bgAudio.muted = wasGlobalMuted;
+      bgAudio.play().catch(() => {});
+      bgAudioRef.current = bgAudio;
+
+      return () => {
+        bgAudio.pause();
+        bgAudioRef.current = null;
+        if (globalAudio && !wasGlobalMuted) {
+          globalAudio.play().catch(() => {});
+        }
+      };
+    }
+  }, [customBackground]);
   const [giverName, setGiverName] = useState("");
   const [showTributeForm, setShowTributeForm] = useState(false);
   const [candleCount, setCandleCount] = useState(0);
@@ -46,7 +75,7 @@ export default function MemorialPage() {
       if (memorialData?.active_background_id) {
         const { data: bgOption } = await supabase
           .from("background_options")
-          .select("media_url, media_type")
+          .select("media_url, media_type, audio_url")
           .eq("id", memorialData.active_background_id)
           .single();
 
