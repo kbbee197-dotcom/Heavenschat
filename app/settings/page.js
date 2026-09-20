@@ -51,6 +51,7 @@ export default function Settings() {
 
   const menuItems = [
     { label: "Account", href: "/settings/account", icon: "👤" },
+    { label: "Friends", href: "/settings/friends", icon: "🤝" },
     { label: "My Memorials", href: "/settings/memorials", icon: "🕊️" },
     { label: "Billing & Tokens", href: "/settings/billing", icon: "💰" },
     { label: "Notifications", href: "/settings/notifications", icon: "🔔" },
