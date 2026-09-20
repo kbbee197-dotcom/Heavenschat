@@ -108,9 +108,16 @@ export default function AdminDashboard() {
 
         <button
           onClick={() => router.push("/admin/flags")}
-          className="w-full mb-6 px-4 py-3 rounded-xl bg-amber-500/10 border border-amber-300/30 text-amber-200 text-sm hover:bg-amber-500/20 transition"
+          className="w-full mb-3 px-4 py-3 rounded-xl bg-amber-500/10 border border-amber-300/30 text-amber-200 text-sm hover:bg-amber-500/20 transition"
         >
           🚩 Moderation
+        </button>
+
+        <button
+          onClick={() => router.push("/admin/background-requests")}
+          className="w-full mb-6 px-4 py-3 rounded-xl bg-amber-500/10 border border-amber-300/30 text-amber-200 text-sm hover:bg-amber-500/20 transition"
+        >
+          🖼️ Background Requests
         </button>
 
         {error && (
