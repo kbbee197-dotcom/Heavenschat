@@ -23,7 +23,7 @@ export default function MemorialPage() {
   const [showStore, setShowStore] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
   const [showVoiceClips, setShowVoiceClips] = useState(false);
-  const [expandedTributes, setExpandedTributes] = useState({});
+  const [expandedTributeId, setExpandedTributeId] = useState(null);
   const [voiceClips, setVoiceClips] = useState([]);
   const [customBackground, setCustomBackground] = useState(null);
   const [showVideos, setShowVideos] = useState(false);
@@ -493,7 +493,7 @@ export default function MemorialPage() {
   };
 
   const toggleTributeExpand = (id) => {
-    setExpandedTributes((prev) => ({ ...prev, [id]: !prev[id] }));
+    setExpandedTributeId((prev) => (prev === id ? null : id));
   };
 
   const handleFlag = async (contentType, contentId) => {
@@ -960,7 +960,7 @@ export default function MemorialPage() {
             </p>
           )}
           {tributes.map((t) => {
-            const isOpen = expandedTributes[t.id];
+            const isOpen = expandedTributeId === t.id;
             return (
               <div
                 key={t.id}
