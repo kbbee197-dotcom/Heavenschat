@@ -45,16 +45,16 @@ export default function Inbox() {
         user_ids: otherIds,
       });
 
-      const emailMap = {};
+      const nameMap = {};
       (profiles || []).forEach((p) => {
-        emailMap[p.id] = p.email;
+        nameMap[p.id] = p.username || p.email;
       });
 
       const enriched = convos.map((c) => {
         const otherId = c.user_one === userId ? c.user_two : c.user_one;
         return {
           ...c,
-          otherEmail: emailMap[otherId] || "Unknown",
+          otherEmail: nameMap[otherId] || "Unknown",
         };
       });
 
@@ -75,12 +75,12 @@ export default function Inbox() {
 
     setSearching(true);
 
-    const { data: profiles, error } = await supabase.rpc("get_profile_by_email", {
-      lookup_email: searchEmail.trim(),
+    const { data: profiles, error } = await supabase.rpc("get_profile_by_identifier", {
+      identifier: searchEmail.trim().toLowerCase(),
     });
 
     if (error || !profiles || profiles.length === 0) {
-      setSearchError("No user found with that email.");
+      setSearchError("No user found with that username or email.");
       setSearching(false);
       return;
     }
@@ -146,10 +146,10 @@ export default function Inbox() {
         ) : (
           <form onSubmit={handleStartNewConversation} className="mb-6">
             <input
-              type="email"
+              type="text"
               value={searchEmail}
               onChange={(e) => setSearchEmail(e.target.value)}
-              placeholder="Enter their email"
+              placeholder="Enter their username or email"
               className="w-full px-4 py-2 mb-2 rounded-lg bg-white/90 text-gray-900 border border-amber-200/50 text-sm"
             />
             {searchError && (

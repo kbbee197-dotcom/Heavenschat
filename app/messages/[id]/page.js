@@ -39,7 +39,8 @@ export default function MessageThread() {
           user_ids: [otherId],
         });
 
-        setOtherEmail(profiles?.[0]?.email || "Unknown");
+        const other = profiles?.[0];
+        setOtherEmail(other?.username || other?.email || "Unknown");
       }
 
       const { data: msgs } = await supabase
