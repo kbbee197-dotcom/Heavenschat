@@ -13,6 +13,7 @@ export default function MessageThread() {
   const [body, setBody] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [startingCall, setStartingCall] = useState(false);
   const bottomRef = useRef(null);
 
   useEffect(() => {
@@ -107,6 +108,59 @@ export default function MessageThread() {
     setSending(false);
   };
 
+  const handleStartVideoCall = async () => {
+    if (!currentUser) return;
+    setStartingCall(true);
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData?.session?.access_token;
+
+    const res = await fetch("/api/create-video-room", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const result = await res.json();
+    setStartingCall(false);
+
+    if (!res.ok || !result.url) {
+      alert(result.error || "Could not start a video call. Please try again.");
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("messages")
+      .insert({
+        conversation_id: params.id,
+        sender_id: currentUser.id,
+        body: `📹 Video call started: ${result.url}`,
+      })
+      .select()
+      .single();
+
+    if (!error) {
+      await supabase
+        .from("conversations")
+        .update({ last_message_at: new Date().toISOString() })
+        .eq("id", params.id);
+
+      fetch("/api/notify-memorial-owner", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          table: "messages",
+          record: { ...data, conversation_id: params.id },
+        }),
+      }).catch(() => {});
+
+      setMessages((prev) => [...prev, data]);
+      window.open(result.url, "_blank");
+    }
+  };
+
   if (loading) {
     return (
       <main className="min-h-screen bg-black flex items-center justify-center">
@@ -136,9 +190,17 @@ export default function MessageThread() {
           ← Back to Messages
         </button>
 
-        <h1 className="text-white font-serif text-lg mb-4 text-center">
+        <h1 className="text-white font-serif text-lg mb-2 text-center">
           {otherEmail}
         </h1>
+
+        <button
+          onClick={handleStartVideoCall}
+          disabled={startingCall}
+          className="w-full mb-4 px-4 py-2 rounded-full text-xs text-amber-50 bg-white/10 border border-amber-200/50 hover:bg-white/20 transition disabled:opacity-40"
+        >
+          {startingCall ? "Starting call..." : "📹 Start Video Call"}
+        </button>
 
         <div className="flex-1 overflow-y-auto space-y-2 mb-4 pr-1">
           {messages.length === 0 ? (
@@ -155,7 +217,18 @@ export default function MessageThread() {
                     : "bg-white/10 text-white border border-amber-200/20"
                 }`}
               >
-                {m.body}
+                {m.body.startsWith("📹 Video call started: ") ? (
+                  <a
+                    href={m.body.replace("📹 Video call started: ", "")}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline font-medium"
+                  >
+                    📹 Join Video Call
+                  </a>
+                ) : (
+                  m.body
+                )}
               </div>
             ))
           )}
