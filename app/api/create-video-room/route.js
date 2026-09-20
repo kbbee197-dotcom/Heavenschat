@@ -29,7 +29,6 @@ export async function POST(request) {
     body: JSON.stringify({
       properties: {
         exp: Math.floor(Date.now() / 1000) + 60 * 60 * 2, // room expires in 2 hours
-        enable_chat: true,
       },
     }),
   });
