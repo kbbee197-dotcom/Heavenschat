@@ -6,6 +6,10 @@ import { supabase } from "@/lib/supabaseClient";
 
 export default function AccountSettings() {
   const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
+  const [usernameInput, setUsernameInput] = useState("");
+  const [savingUsername, setSavingUsername] = useState(false);
+  const [usernameMessage, setUsernameMessage] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -26,10 +30,59 @@ export default function AccountSettings() {
         return;
       }
       setEmail(userData.user.email);
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("username")
+        .eq("id", userData.user.id)
+        .single();
+
+      if (profile?.username) {
+        setUsername(profile.username);
+        setUsernameInput(profile.username);
+      }
+
       setLoading(false);
     };
     load();
   }, [router]);
+
+  const handleSaveUsername = async (e) => {
+    e.preventDefault();
+    setUsernameMessage("");
+
+    const trimmed = usernameInput.trim().toLowerCase();
+    const validFormat = /^[a-z0-9_]{3,20}$/.test(trimmed);
+
+    if (!validFormat) {
+      setUsernameMessage("Username must be 3-20 characters: letters, numbers, underscores only.");
+      return;
+    }
+
+    setSavingUsername(true);
+
+    const { data: userData } = await supabase.auth.getUser();
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({ username: trimmed })
+      .eq("id", userData.user.id);
+
+    setSavingUsername(false);
+
+    if (error) {
+      if (error.message.includes("duplicate") || error.code === "23505") {
+        setUsernameMessage("That username is already taken.");
+      } else {
+        setUsernameMessage(error.message);
+      }
+      return;
+    }
+
+    setUsername(trimmed);
+    setUsernameInput(trimmed);
+    setUsernameMessage("Username saved.");
+  };
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
@@ -126,6 +179,30 @@ export default function AccountSettings() {
           <p className="text-amber-50/60 text-xs mb-1">Email</p>
           <p className="text-white text-sm">{email}</p>
         </div>
+
+        <form onSubmit={handleSaveUsername} className="mb-8">
+          <p className="text-white text-sm mb-1">Username</p>
+          <p className="text-white/40 text-xs mb-3">
+            Let others find and message you without your email.
+          </p>
+          <input
+            type="text"
+            value={usernameInput}
+            onChange={(e) => setUsernameInput(e.target.value)}
+            placeholder="e.g. jsmith_92"
+            className="w-full bg-white/10 border border-amber-200/30 rounded-xl px-4 py-2 text-sm text-white placeholder-white/40 focus:outline-none focus:border-amber-300/60 mb-2"
+          />
+          {usernameMessage && (
+            <p className="text-amber-200 text-xs mb-2">{usernameMessage}</p>
+          )}
+          <button
+            type="submit"
+            disabled={savingUsername}
+            className="w-full px-4 py-2 rounded-full text-sm text-amber-50 bg-white/10 border border-amber-200/50 hover:bg-white/20 transition disabled:opacity-40"
+          >
+            {savingUsername ? "Saving..." : "Save Username"}
+          </button>
+        </form>
 
         <form onSubmit={handleChangePassword} className="mb-8">
           <p className="text-white text-sm mb-3">Change Password</p>
