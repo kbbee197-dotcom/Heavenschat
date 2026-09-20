@@ -14,6 +14,11 @@ export default function MemorialPage() {
   const [loading, setLoading] = useState(true);
   const [authorName, setAuthorName] = useState("");
   const [message, setMessage] = useState("");
+  const [recordingType, setRecordingType] = useState(null); // null | "audio" | "video"
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordedBlob, setRecordedBlob] = useState(null);
+  const [recordedPreviewUrl, setRecordedPreviewUrl] = useState(null);
+  const [recordError, setRecordError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [showStore, setShowStore] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
@@ -23,6 +28,10 @@ export default function MemorialPage() {
   const [showVideos, setShowVideos] = useState(false);
   const [memorialVideos, setMemorialVideos] = useState([]);
   const bgAudioRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const mediaStreamRef = useRef(null);
+  const recordedChunksRef = useRef([]);
+  const liveVideoRef = useRef(null);
 
   useEffect(() => {
     const audioUrl = memorial?.custom_audio_url || customBackground?.audio_url;
@@ -314,13 +323,112 @@ export default function MemorialPage() {
     setSending(false);
   };
 
+  const startRecording = async (type) => {
+    setRecordError("");
+    resetRecording();
+
+    try {
+      const constraints =
+        type === "video" ? { audio: true, video: true } : { audio: true };
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      mediaStreamRef.current = stream;
+
+      if (type === "video" && liveVideoRef.current) {
+        liveVideoRef.current.srcObject = stream;
+        liveVideoRef.current.play().catch(() => {});
+      }
+
+      recordedChunksRef.current = [];
+      const recorder = new MediaRecorder(stream);
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          recordedChunksRef.current.push(e.data);
+        }
+      };
+
+      recorder.onstop = () => {
+        const blob = new Blob(recordedChunksRef.current, {
+          type: type === "video" ? "video/webm" : "audio/webm",
+        });
+        setRecordedBlob(blob);
+        setRecordedPreviewUrl(URL.createObjectURL(blob));
+
+        if (mediaStreamRef.current) {
+          mediaStreamRef.current.getTracks().forEach((t) => t.stop());
+          mediaStreamRef.current = null;
+        }
+      };
+
+      mediaRecorderRef.current = recorder;
+      recorder.start();
+      setIsRecording(true);
+      setRecordingType(type);
+    } catch (err) {
+      setRecordError(
+        "Could not access your microphone/camera. Please check permissions."
+      );
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  };
+
+  const resetRecording = () => {
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach((t) => t.stop());
+      mediaStreamRef.current = null;
+    }
+    if (recordedPreviewUrl) {
+      URL.revokeObjectURL(recordedPreviewUrl);
+    }
+    setRecordedBlob(null);
+    setRecordedPreviewUrl(null);
+    setRecordingType(null);
+    setIsRecording(false);
+    recordedChunksRef.current = [];
+  };
+
   const handleAddTribute = async (e) => {
     e.preventDefault();
     if (!currentUser) return;
-    if (!message.trim()) return;
+    if (!message.trim() && !recordedBlob) return;
     setSubmitting(true);
+    setRecordError("");
 
     const displayName = authorName.trim() || currentUser.email;
+
+    let audioUrl = null;
+    let videoUrl = null;
+
+    if (recordedBlob) {
+      const isVideo = recordingType === "video";
+      const bucket = isVideo ? "memorial-videos" : "memorial-voices";
+      const ext = isVideo ? "webm" : "webm";
+      const fileName = `${params.id}-tribute-${currentUser.id}-${Date.now()}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from(bucket)
+        .upload(fileName, recordedBlob);
+
+      if (uploadError) {
+        setRecordError("Recording upload failed: " + uploadError.message);
+        setSubmitting(false);
+        return;
+      }
+
+      const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(fileName);
+
+      if (isVideo) {
+        videoUrl = urlData.publicUrl;
+      } else {
+        audioUrl = urlData.publicUrl;
+      }
+    }
 
     const { data, error } = await supabase
       .from("tributes")
@@ -328,7 +436,9 @@ export default function MemorialPage() {
         memorial_id: params.id,
         author_id: currentUser.id,
         author_name: displayName,
-        message: message,
+        message: message.trim() || null,
+        audio_url: audioUrl,
+        video_url: videoUrl,
       })
       .select()
       .single();
@@ -345,6 +455,7 @@ export default function MemorialPage() {
       setTributes([data, ...tributes]);
       setAuthorName("");
       setMessage("");
+      resetRecording();
     }
     setSubmitting(false);
   };
@@ -721,15 +832,84 @@ export default function MemorialPage() {
                 className="w-full px-3 py-2 mb-2 rounded-lg border border-amber-200/30 text-sm text-white"
               />
               <textarea
-                placeholder="Leave a message..."
+                placeholder="Leave a message... (optional if recording audio/video)"
                 rows={3}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 className="w-full px-3 py-2 mb-2 rounded-lg border border-amber-200/30 text-sm text-white resize-none"
               />
+
+              {recordError && (
+                <p className="text-red-300 text-xs mb-2">{recordError}</p>
+              )}
+
+              {!recordingType && !recordedBlob && (
+                <div className="flex gap-2 mb-2">
+                  <button
+                    type="button"
+                    onClick={() => startRecording("audio")}
+                    className="flex-1 py-2 rounded-lg text-xs text-white bg-white/10 border border-amber-200/30 hover:bg-white/20 transition"
+                  >
+                    🎙️ Record Audio
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => startRecording("video")}
+                    className="flex-1 py-2 rounded-lg text-xs text-white bg-white/10 border border-amber-200/30 hover:bg-white/20 transition"
+                  >
+                    📹 Record Video
+                  </button>
+                </div>
+              )}
+
+              {recordingType && isRecording && (
+                <div className="mb-2">
+                  {recordingType === "video" && (
+                    <video
+                      ref={liveVideoRef}
+                      muted
+                      playsInline
+                      className="w-full rounded-lg mb-2 bg-black"
+                    />
+                  )}
+                  <button
+                    type="button"
+                    onClick={stopRecording}
+                    className="w-full py-2 rounded-lg text-xs text-white bg-red-500/80 hover:bg-red-500 transition animate-pulse"
+                  >
+                    ⏹ Stop Recording
+                  </button>
+                </div>
+              )}
+
+              {recordedBlob && recordedPreviewUrl && (
+                <div className="mb-2">
+                  {recordingType === "video" ? (
+                    <video
+                      controls
+                      src={recordedPreviewUrl}
+                      className="w-full rounded-lg mb-2"
+                    />
+                  ) : (
+                    <audio
+                      controls
+                      src={recordedPreviewUrl}
+                      className="w-full mb-2"
+                    />
+                  )}
+                  <button
+                    type="button"
+                    onClick={resetRecording}
+                    className="w-full py-2 rounded-lg text-xs text-white/70 border border-white/20 hover:bg-white/10 transition"
+                  >
+                    Discard & Re-record
+                  </button>
+                </div>
+              )}
+
               <button
                 type="submit"
-                disabled={submitting}
+                disabled={submitting || isRecording}
                 className="w-full bg-amber-600 hover:bg-amber-700 text-white py-2 rounded-lg text-sm font-medium transition disabled:opacity-50"
               >
                 {submitting ? "Posting..." : "Leave a Tribute"}
@@ -782,7 +962,15 @@ export default function MemorialPage() {
                   </button>
                 </div>
               </div>
-              <p className="text-white/90 text-sm">{t.message}</p>
+              {t.video_url && (
+                <video controls src={t.video_url} className="w-full rounded-lg mb-2" />
+              )}
+              {t.audio_url && (
+                <audio controls src={t.audio_url} className="w-full mb-2" />
+              )}
+              {t.message && (
+                <p className="text-white/90 text-sm">{t.message}</p>
+              )}
             </div>
           ))}
         </div>
