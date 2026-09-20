@@ -10,6 +10,8 @@ export default function AccountSettings() {
   const [usernameInput, setUsernameInput] = useState("");
   const [savingUsername, setSavingUsername] = useState(false);
   const [usernameMessage, setUsernameMessage] = useState("");
+  const [messagePrivacy, setMessagePrivacy] = useState("anyone");
+  const [savingPrivacy, setSavingPrivacy] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -33,7 +35,7 @@ export default function AccountSettings() {
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("username")
+        .select("username, message_privacy")
         .eq("id", userData.user.id)
         .single();
 
@@ -42,10 +44,28 @@ export default function AccountSettings() {
         setUsernameInput(profile.username);
       }
 
+      if (profile?.message_privacy) {
+        setMessagePrivacy(profile.message_privacy);
+      }
+
       setLoading(false);
     };
     load();
   }, [router]);
+
+  const handleChangePrivacy = async (value) => {
+    setSavingPrivacy(true);
+    setMessagePrivacy(value);
+
+    const { data: userData } = await supabase.auth.getUser();
+
+    await supabase
+      .from("profiles")
+      .update({ message_privacy: value })
+      .eq("id", userData.user.id);
+
+    setSavingPrivacy(false);
+  };
 
   const handleSaveUsername = async (e) => {
     e.preventDefault();
@@ -203,6 +223,37 @@ export default function AccountSettings() {
             {savingUsername ? "Saving..." : "Save Username"}
           </button>
         </form>
+
+        <div className="mb-8">
+          <p className="text-white text-sm mb-1">Who Can Message You</p>
+          <p className="text-white/40 text-xs mb-3">
+            Control whether anyone can reach out, or only people you've added as friends.
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => handleChangePrivacy("anyone")}
+              disabled={savingPrivacy}
+              className={`flex-1 py-2 rounded-lg text-xs font-medium transition ${
+                messagePrivacy === "anyone"
+                  ? "bg-amber-500 text-white"
+                  : "bg-white/10 text-white/60"
+              }`}
+            >
+              Anyone
+            </button>
+            <button
+              onClick={() => handleChangePrivacy("friends_only")}
+              disabled={savingPrivacy}
+              className={`flex-1 py-2 rounded-lg text-xs font-medium transition ${
+                messagePrivacy === "friends_only"
+                  ? "bg-amber-500 text-white"
+                  : "bg-white/10 text-white/60"
+              }`}
+            >
+              Friends Only
+            </button>
+          </div>
+        </div>
 
         <form onSubmit={handleChangePassword} className="mb-8">
           <p className="text-white text-sm mb-3">Change Password</p>
