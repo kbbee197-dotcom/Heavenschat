@@ -20,6 +20,8 @@ export default function MemorialPage() {
   const [showVoiceClips, setShowVoiceClips] = useState(false);
   const [voiceClips, setVoiceClips] = useState([]);
   const [customBackground, setCustomBackground] = useState(null);
+  const [showVideos, setShowVideos] = useState(false);
+  const [memorialVideos, setMemorialVideos] = useState([]);
   const bgAudioRef = useRef(null);
 
   useEffect(() => {
@@ -93,6 +95,14 @@ export default function MemorialPage() {
         .order("created_at", { ascending: true });
 
       setPhotos(photosData || []);
+
+      const { data: videosData } = await supabase
+        .from("memorial_videos")
+        .select("*")
+        .eq("memorial_id", params.id)
+        .order("created_at", { ascending: true });
+
+      setMemorialVideos(videosData || []);
 
       const { data: clipsData } = await supabase
         .from("voice_clips")
@@ -444,6 +454,51 @@ export default function MemorialPage() {
         >
           🎙️
         </button>
+      )}
+
+      {memorialVideos.length > 0 && (
+        <button
+          onClick={() => setShowVideos(true)}
+          className="fixed top-52 right-4 z-[90] w-9 h-9 rounded-full bg-black/30 backdrop-blur-md border border-amber-200/30 flex items-center justify-center text-lg hover:bg-black/40 transition"
+          aria-label="Watch videos"
+        >
+          🎬
+        </button>
+      )}
+
+      {showVideos && (
+        <div
+          className="fixed inset-0 z-[95] bg-black/80 backdrop-blur-sm flex items-center justify-center px-6"
+          onClick={() => setShowVideos(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-sm bg-black/70 backdrop-blur-md border border-amber-200/30 rounded-2xl p-6 max-h-[80vh] overflow-y-auto"
+          >
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-white font-serif text-lg">
+                Videos of {memorial?.full_name}
+              </h3>
+              <button
+                onClick={() => setShowVideos(false)}
+                className="text-white/60 text-xl leading-none"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {memorialVideos.map((v) => (
+                <div key={v.id}>
+                  <video controls src={v.video_url} className="w-full rounded-xl" />
+                  {v.caption && (
+                    <p className="text-white/50 text-xs mt-1">{v.caption}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       )}
 
       {showVoiceClips && (
