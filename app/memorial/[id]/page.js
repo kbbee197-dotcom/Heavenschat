@@ -24,6 +24,7 @@ export default function MemorialPage() {
   const [showGallery, setShowGallery] = useState(false);
   const [showVoiceClips, setShowVoiceClips] = useState(false);
   const [expandedTributeId, setExpandedTributeId] = useState(null);
+  const [showTributesList, setShowTributesList] = useState(false);
   const [voiceClips, setVoiceClips] = useState([]);
   const [customBackground, setCustomBackground] = useState(null);
   const [showVideos, setShowVideos] = useState(false);
@@ -841,6 +842,14 @@ export default function MemorialPage() {
           </span>
         </button>
 
+        <button
+          onClick={() => setShowTributesList(!showTributesList)}
+          className="w-full flex items-center justify-between mb-3 text-white/60 text-sm"
+        >
+          <span>{tributes.length} tribute{tributes.length === 1 ? "" : "s"}</span>
+          <span>{showTributesList ? "▲ Hide" : "▼ View Tributes"}</span>
+        </button>
+
         {showTributeForm && (
           currentUser ? (
             <form
@@ -953,6 +962,7 @@ export default function MemorialPage() {
           )
         )}
 
+        {showTributesList && (
         <div className="w-full space-y-3 max-h-[420px] overflow-y-auto pr-1">
           {tributes.length === 0 && (
             <p className="text-amber-50/60 text-sm text-center">
@@ -1013,6 +1023,7 @@ export default function MemorialPage() {
             );
           })}
         </div>
+        )}
       </div>
     </main>
   );
