@@ -323,23 +323,41 @@ export default function MemorialPage() {
     setSending(false);
   };
 
+  useEffect(() => {
+    if (
+      recordingType === "video" &&
+      isRecording &&
+      liveVideoRef.current &&
+      mediaStreamRef.current
+    ) {
+      liveVideoRef.current.srcObject = mediaStreamRef.current;
+      liveVideoRef.current.play().catch(() => {});
+    }
+  }, [recordingType, isRecording]);
+
   const startRecording = async (type) => {
     setRecordError("");
     resetRecording();
 
     try {
       const constraints =
-        type === "video" ? { audio: true, video: true } : { audio: true };
+        type === "video"
+          ? { audio: true, video: { facingMode: "user" } }
+          : { audio: true };
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       mediaStreamRef.current = stream;
 
-      if (type === "video" && liveVideoRef.current) {
-        liveVideoRef.current.srcObject = stream;
-        liveVideoRef.current.play().catch(() => {});
-      }
-
       recordedChunksRef.current = [];
-      const recorder = new MediaRecorder(stream);
+
+      const preferredType =
+        type === "video" ? "video/webm;codecs=vp8,opus" : "audio/webm;codecs=opus";
+      const mimeType = MediaRecorder.isTypeSupported(preferredType)
+        ? preferredType
+        : undefined;
+
+      const recorder = mimeType
+        ? new MediaRecorder(stream, { mimeType })
+        : new MediaRecorder(stream);
 
       recorder.ondataavailable = (e) => {
         if (e.data.size > 0) {
