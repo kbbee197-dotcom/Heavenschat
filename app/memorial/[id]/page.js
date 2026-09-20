@@ -959,54 +959,59 @@ export default function MemorialPage() {
               Be the first to leave a tribute.
             </p>
           )}
-          {tributes.map((t) => (
-            <div
-              key={t.id}
-              className="bg-black/30 backdrop-blur-md backdrop-blur-sm border border-amber-200/30 rounded-xl px-4 py-3 shadow-sm"
-            >
-              <div className="flex items-center justify-between mb-1">
-                <p className="text-amber-700 text-xs font-medium">
-                  {t.author_name}
-                </p>
-                <div className="flex items-center gap-3">
-                  {t.author_id && currentUser && t.author_id !== currentUser.id && (
-                    <button
-                      onClick={() => handleMessageAuthor(t.author_id)}
-                      className="text-amber-200/70 text-xs underline hover:text-amber-200"
-                    >
-                      Message
-                    </button>
-                  )}
-                  <button
-                    onClick={() => handleFlag("tribute", t.id)}
-                    className="text-white/30 text-xs underline hover:text-white/60"
-                  >
-                    Flag
-                  </button>
-                </div>
-              </div>
-              {(t.video_url || t.audio_url) && (
+          {tributes.map((t) => {
+            const isOpen = expandedTributes[t.id];
+            return (
+              <div
+                key={t.id}
+                className="bg-black/30 backdrop-blur-md backdrop-blur-sm border border-amber-200/30 rounded-xl px-4 py-3 shadow-sm"
+              >
                 <button
                   onClick={() => toggleTributeExpand(t.id)}
-                  className="flex items-center gap-2 text-amber-200/80 text-xs mb-1 hover:text-amber-200"
+                  className="w-full flex items-center justify-between"
                 >
-                  <span>{t.video_url ? "🎥 Video" : "🎙️ Audio"}</span>
-                  <span className="text-white/40">
-                    {expandedTributes[t.id] ? "▲ Hide" : "▼ Play"}
+                  <span className="text-amber-700 text-xs font-medium flex items-center gap-2">
+                    {t.author_name}
+                    {t.video_url && <span>🎥</span>}
+                    {t.audio_url && <span>🎙️</span>}
+                  </span>
+                  <span className="text-white/40 text-xs">
+                    {isOpen ? "▲" : "▼"}
                   </span>
                 </button>
-              )}
-              {t.video_url && expandedTributes[t.id] && (
-                <video controls src={t.video_url} className="w-full rounded-lg mb-2" />
-              )}
-              {t.audio_url && expandedTributes[t.id] && (
-                <audio controls src={t.audio_url} className="w-full mb-2" />
-              )}
-              {t.message && (
-                <p className="text-white/90 text-sm">{t.message}</p>
-              )}
-            </div>
-          ))}
+
+                {isOpen && (
+                  <div className="mt-2">
+                    <div className="flex items-center gap-3 mb-2">
+                      {t.author_id && currentUser && t.author_id !== currentUser.id && (
+                        <button
+                          onClick={() => handleMessageAuthor(t.author_id)}
+                          className="text-amber-200/70 text-xs underline hover:text-amber-200"
+                        >
+                          Message
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleFlag("tribute", t.id)}
+                        className="text-white/30 text-xs underline hover:text-white/60"
+                      >
+                        Flag
+                      </button>
+                    </div>
+                    {t.video_url && (
+                      <video controls src={t.video_url} className="w-full rounded-lg mb-2" />
+                    )}
+                    {t.audio_url && (
+                      <audio controls src={t.audio_url} className="w-full mb-2" />
+                    )}
+                    {t.message && (
+                      <p className="text-white/90 text-sm">{t.message}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     </main>
