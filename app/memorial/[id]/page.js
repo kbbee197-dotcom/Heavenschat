@@ -23,6 +23,7 @@ export default function MemorialPage() {
   const [showStore, setShowStore] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
   const [showVoiceClips, setShowVoiceClips] = useState(false);
+  const [expandedTributes, setExpandedTributes] = useState({});
   const [voiceClips, setVoiceClips] = useState([]);
   const [customBackground, setCustomBackground] = useState(null);
   const [showVideos, setShowVideos] = useState(false);
@@ -489,6 +490,10 @@ export default function MemorialPage() {
     if (conversationId) {
       router.push(`/messages/${conversationId}`);
     }
+  };
+
+  const toggleTributeExpand = (id) => {
+    setExpandedTributes((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
   const handleFlag = async (contentType, contentId) => {
@@ -980,10 +985,21 @@ export default function MemorialPage() {
                   </button>
                 </div>
               </div>
-              {t.video_url && (
+              {(t.video_url || t.audio_url) && (
+                <button
+                  onClick={() => toggleTributeExpand(t.id)}
+                  className="flex items-center gap-2 text-amber-200/80 text-xs mb-1 hover:text-amber-200"
+                >
+                  <span>{t.video_url ? "🎥 Video" : "🎙️ Audio"}</span>
+                  <span className="text-white/40">
+                    {expandedTributes[t.id] ? "▲ Hide" : "▼ Play"}
+                  </span>
+                </button>
+              )}
+              {t.video_url && expandedTributes[t.id] && (
                 <video controls src={t.video_url} className="w-full rounded-lg mb-2" />
               )}
-              {t.audio_url && (
+              {t.audio_url && expandedTributes[t.id] && (
                 <audio controls src={t.audio_url} className="w-full mb-2" />
               )}
               {t.message && (
