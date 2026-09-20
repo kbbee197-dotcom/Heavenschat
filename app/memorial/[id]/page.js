@@ -750,7 +750,7 @@ export default function MemorialPage() {
           )
         )}
 
-        <div className="w-full space-y-3">
+        <div className="w-full space-y-3 max-h-[420px] overflow-y-auto pr-1">
           {tributes.length === 0 && (
             <p className="text-amber-50/60 text-sm text-center">
               Be the first to leave a tribute.
