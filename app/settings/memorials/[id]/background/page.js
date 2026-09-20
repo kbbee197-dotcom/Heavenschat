@@ -14,6 +14,9 @@ export default function BackgroundSettings() {
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState(null);
   const [error, setError] = useState("");
+  const [customRequests, setCustomRequests] = useState([]);
+  const [customDescription, setCustomDescription] = useState("");
+  const [submittingRequest, setSubmittingRequest] = useState(false);
   const [audioFile, setAudioFile] = useState(null);
   const [uploadingAudio, setUploadingAudio] = useState(false);
   const [unlockingAudio, setUnlockingAudio] = useState(false);
@@ -62,6 +65,14 @@ export default function BackgroundSettings() {
         .eq("memorial_id", params.id);
 
       setUnlockedIds((unlocks || []).map((u) => u.background_id));
+
+      const { data: requests } = await supabase
+        .from("custom_background_requests")
+        .select("*")
+        .eq("memorial_id", params.id)
+        .order("created_at", { ascending: false });
+
+      setCustomRequests(requests || []);
       setLoading(false);
     };
     load();
@@ -133,6 +144,50 @@ export default function BackgroundSettings() {
     }
 
     setMemorial((prev) => ({ ...prev, active_background_id: option.id }));
+  };
+
+  const handleSubmitRequest = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    if (!customDescription.trim()) {
+      setError("Please describe the background you'd like.");
+      return;
+    }
+
+    if (tokenBalance < 2000) {
+      setError("You need 2000 tokens to request a custom background.");
+      return;
+    }
+
+    setSubmittingRequest(true);
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData?.session?.access_token;
+
+    const res = await fetch("/api/request-custom-background", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        memorialId: params.id,
+        description: customDescription.trim(),
+      }),
+    });
+
+    const result = await res.json();
+    setSubmittingRequest(false);
+
+    if (!res.ok) {
+      setError(result.error || "Something went wrong.");
+      return;
+    }
+
+    setCustomRequests((prev) => [result.request, ...prev]);
+    setTokenBalance(result.newBalance);
+    setCustomDescription("");
   };
 
   const handleUnlockCustomAudio = async () => {
@@ -315,6 +370,63 @@ export default function BackgroundSettings() {
               </div>
             );
           })}
+        </div>
+
+        <div className="border-t border-amber-200/20 pt-6 mt-6 mb-6">
+          <p className="text-white text-sm mb-1">Request a Custom Background</p>
+          <p className="text-white/40 text-xs mb-3">
+            Describe the background you'd like, and our team will create it for
+            you. Cost: 2000 tokens (refunded if we can't fulfill your request).
+          </p>
+
+          {customRequests.length > 0 && (
+            <div className="space-y-2 mb-4">
+              {customRequests.map((r) => (
+                <div
+                  key={r.id}
+                  className="bg-white/5 border border-amber-200/20 rounded-xl p-3"
+                >
+                  <p className="text-white/80 text-xs mb-1">{r.description}</p>
+                  <div className="flex items-center justify-between">
+                    <span
+                      className={`text-xs ${
+                        r.status === "completed"
+                          ? "text-amber-200"
+                          : r.status === "rejected"
+                          ? "text-red-300"
+                          : "text-white/50"
+                      }`}
+                    >
+                      {r.status === "pending" && "Pending review"}
+                      {r.status === "in_progress" && "In progress"}
+                      {r.status === "completed" && "Completed"}
+                      {r.status === "rejected" && "Rejected — refunded"}
+                    </span>
+                  </div>
+                  {r.admin_notes && (
+                    <p className="text-white/40 text-xs mt-1">Note: {r.admin_notes}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmitRequest}>
+            <textarea
+              rows={3}
+              value={customDescription}
+              onChange={(e) => setCustomDescription(e.target.value)}
+              placeholder="Describe the background you'd like (setting, mood, colors, etc.)"
+              className="w-full px-3 py-2 mb-3 rounded-lg bg-white/90 text-gray-900 border border-amber-200/50 text-sm resize-none"
+            />
+            <button
+              type="submit"
+              disabled={submittingRequest}
+              className="w-full px-4 py-2 rounded-full text-sm text-amber-50 bg-white/10 border border-amber-200/50 hover:bg-white/20 transition disabled:opacity-40"
+            >
+              {submittingRequest ? "Submitting..." : "Submit Request (2000 tokens)"}
+            </button>
+          </form>
         </div>
 
         <div className="border-t border-amber-200/20 pt-6 mt-6">
